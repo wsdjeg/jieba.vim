@@ -48,10 +48,10 @@ def the_strategy():
             jieba_key_seq_st = st.lists(jieba_motion_st, min_size=1)
             teardown_key_seq_st = st.just(None)
         elif mode == 'o':
-            setup_key_seq_st = cat(
-                st.lists(simple_move_st), just_singleton_list('"xy'))
-            jieba_key_seq_st = st.lists(
-                jieba_motion_st, min_size=1, max_size=1)
+            setup_key_seq_st = st.lists(simple_move_st)
+            jieba_key_seq_st = cat(
+                just_singleton_list('"xy'),
+                st.lists(jieba_motion_st, min_size=1, max_size=1))
             teardown_key_seq_st = st.just(None)
         elif mode == 'xchar':
             setup_key_seq_st = cat(
