@@ -1,0 +1,5 @@
+" This vimscript should be sourced under REPO_ROOT/test.
+set nocompatible
+set rtp+=~/.vim/bundle/vader.vim
+set rtp+=..
+filetype plugin indent on
