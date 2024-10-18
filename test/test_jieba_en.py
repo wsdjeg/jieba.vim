@@ -8,14 +8,11 @@ import contextlib
 import uuid
 from pathlib import Path
 import subprocess
-import os
 
-import pytest
 import hypothesis
 from hypothesis import strategies as st
 
 Path('cases').mkdir(exist_ok=True, parents=False)
-Path('named_cases').mkdir(exist_ok=True, parents=False)
 
 
 def the_strategy():
@@ -261,28 +258,12 @@ def eval_with_vim(vader_test_file: Path):
         assert False, 'timeout'
 
 
-@pytest.mark.skipif(
-    not os.getenv('RUN_PROPTEST', 0),
-    reason='Not explicitly specified to run.',
-)
 @hypothesis.given(the_strategy())
+@hypothesis.example((['a'], 'n', [], ['102039494923949w'], None))
+@hypothesis.example((['a'], 'xchar', ['v'], ['w'], ['"xy']))
+@hypothesis.example((['a'], 'o', [], ['"xy', 'w'], None))
 def test_jieba_en(args):
     paragraph, mode, setup_keys, jieba_keys, teardown_keys = args
     vader_test_file = write_vader_test(paragraph, mode, setup_keys, jieba_keys,
                                        teardown_keys)
     eval_with_vim(vader_test_file)
-
-
-# Below are failed cases found by `test_jieba_en`:
-
-
-def test_case_1():
-    vader_file = Path('named_cases/n1.vader')
-    write_vader_test(['a'], 'n', [], ['102039494923949w'], None, vader_file)
-    eval_with_vim(vader_file)
-
-
-def test_case_2():
-    vader_file = Path('named_cases/x2.vader')
-    write_vader_test(['a'], 'xchar', ['v'], ['w'], ['"xy'], vader_file)
-    eval_with_vim(vader_file)
