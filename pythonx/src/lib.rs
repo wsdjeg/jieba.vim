@@ -1,5 +1,6 @@
 mod navigation;
 pub mod punc;
+mod token;
 
 use pyo3::prelude::*;
 
