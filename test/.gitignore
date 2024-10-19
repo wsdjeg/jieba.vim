@@ -1,4 +1,4 @@
-*.vader
+cases/*.vader
 .hypothesis/
 .pytest_cache/
 __pycache__/

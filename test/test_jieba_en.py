@@ -244,14 +244,15 @@ def write_vader_test(
     return name
 
 
-def eval_with_vim(vader_test_file: Path):
+def eval_with_vim(vader_test_file: Path, unlink_on_success: bool = True):
     try:
         subprocess.run(['vim', '-u', 'vimrc', f'+:Vader! {vader_test_file}'],
                        check=True,
                        stdout=subprocess.DEVNULL,
                        stderr=subprocess.DEVNULL,
                        timeout=10)
-        vader_test_file.unlink()
+        if unlink_on_success:
+            vader_test_file.unlink()
     except subprocess.CalledProcessError:
         assert False, 'wrong result'
     except subprocess.TimeoutExpired:
@@ -268,3 +269,19 @@ def test_jieba_en(args):
     vader_test_file = write_vader_test(paragraph, mode, setup_keys, jieba_keys,
                                        teardown_keys)
     eval_with_vim(vader_test_file)
+
+
+def add_named_cases():
+    cases = {}
+    named_cases = Path('named_cases')
+    if named_cases.is_dir():
+        for vader_test_file in named_cases.iterdir():
+
+            def _named_case():
+                eval_with_vim(vader_test_file, unlink_on_success=False)
+
+            cases[f'test_{vader_test_file.stem}'] = _named_case
+    return cases
+
+
+globals().update(**add_named_cases())
