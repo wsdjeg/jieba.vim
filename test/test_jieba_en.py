@@ -262,6 +262,7 @@ def eval_with_vim(vader_test_file: Path):
 @hypothesis.example((['a'], 'n', [], ['102039494923949w'], None))
 @hypothesis.example((['a'], 'xchar', ['v'], ['w'], ['"xy']))
 @hypothesis.example((['a'], 'o', [], ['"xy', 'w'], None))
+@hypothesis.example(([',', ',', ','], 'n', [], ['w'], None))
 def test_jieba_en(args):
     paragraph, mode, setup_keys, jieba_keys, teardown_keys = args
     vader_test_file = write_vader_test(paragraph, mode, setup_keys, jieba_keys,
