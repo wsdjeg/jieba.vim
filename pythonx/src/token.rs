@@ -650,6 +650,7 @@ pub fn parse_str(line: &str, jieba: &Jieba, into_word: bool) -> Vec<Token> {
 mod tests {
     use super::*;
     use once_cell::sync::Lazy;
+    use proptest::prelude::*;
     use std::io::BufReader;
 
     #[test]
@@ -738,6 +739,37 @@ mod tests {
 
     fn parse_str_test(s: &str, into_word: bool) -> Vec<Token> {
         parse_str(s, &JIEBA, into_word)
+    }
+
+    proptest! {
+        #[test]
+        fn parse_str_tokens_are_nonempty_contiguous_word(s in "\\PC*") {
+            let tokens = parse_str_test(&s, true);
+            let mut start = 0;
+            for tok in tokens {
+                assert_eq!(tok.col.start_byte_index, start);
+                assert!(tok.col.start_byte_index < tok.col.excl_end_byte_index);
+                assert!(tok.col.start_byte_index <= tok.col.incl_end_byte_index);
+                assert!(tok.col.incl_end_byte_index < tok.col.excl_end_byte_index);
+                start = tok.col.excl_end_byte_index;
+            }
+        }
+    }
+
+    proptest! {
+        #[test]
+        #[allow(non_snake_case)]
+        fn parse_str_tokens_are_nonempty_contiguous_WORD(s in "\\PC*") {
+            let tokens = parse_str_test(&s, false);
+            let mut start = 0;
+            for tok in tokens {
+                assert_eq!(tok.col.start_byte_index, start);
+                assert!(tok.col.start_byte_index < tok.col.excl_end_byte_index);
+                assert!(tok.col.start_byte_index <= tok.col.incl_end_byte_index);
+                assert!(tok.col.incl_end_byte_index < tok.col.excl_end_byte_index);
+                start = tok.col.excl_end_byte_index;
+            }
+        }
     }
 
     macro_rules! token {
