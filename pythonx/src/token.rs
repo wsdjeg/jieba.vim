@@ -4,7 +4,9 @@ enum CharType {
     /// Whitespace characters. This includes implicit whitespaces that will be
     /// inserted between 汉字 words.
     Space,
-    /// Word characters.
+    /// 汉字 characters, a kind of word character.
+    Hanzi,
+    /// Other word characters.
     Word,
     /// Left-associated CJK punctuations, a kind of non-word character. When
     /// a word character is followed by a [`CharType::LeftPunc`], an implicit
@@ -41,12 +43,7 @@ fn categorize_char(c: char) -> CharType {
         // https://www.compart.com/en/unicode/block/U+3000.
         | '\u{303f}'
         => CharType::Space,
-        
-        // Default value of 'iskeyword' in Vim (ASCII range).
-        'a'..='z' | 'A'..='Z' | '0'..='9' | '_'
-        // Default value of 'iskeyword' in Vim (extended ASCII range).
-        | '\u{c0}'..='\u{ff}'
-        // Below are definition of CJK characters.
+
         // Ideographic number zero.
         | '\u{3007}'
         // CJK unified ideographs.
@@ -67,6 +64,12 @@ fn categorize_char(c: char) -> CharType {
         // supplement.
         | '\u{2f00}'..='\u{2fd5}'
         | '\u{2e80}'..='\u{2ef3}'
+        => CharType::Hanzi,
+
+        // Default value of 'iskeyword' in Vim (ASCII range).
+        'a'..='z' | 'A'..='Z' | '0'..='9' | '_'
+        // Default value of 'iskeyword' in Vim (extended ASCII range).
+        | '\u{c0}'..='\u{ff}'
         => CharType::Word,
 
         // Fullwidth ASCII variants.
