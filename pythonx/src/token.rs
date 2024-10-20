@@ -1,27 +1,38 @@
 /// Character types.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 enum CharType {
-    /// Whitespace characters. This includes implicit whitespaces that will be
-    /// inserted between 汉字 words.
+    /// Whitespace characters.
     Space,
-    /// 汉字 characters, a kind of word character.
+    /// Word characters.
+    Word(WordCharType),
+    /// Non-word characters.
+    NonWord(NonWordCharType),
+}
+
+/// Word character types.
+#[derive(Debug)]
+enum WordCharType {
+    /// 汉字 characters.
     Hanzi,
     /// Other word characters.
-    Word,
-    /// Left-associated CJK punctuations, a kind of non-word character. When
-    /// a word character is followed by a [`CharType::LeftPunc`], an implicit
-    /// space is added in between.
+    Other,
+}
+
+/// Non-word character types.
+#[derive(Debug)]
+enum NonWordCharType {
+    /// Left-associated CJK punctuations. When a word character is followed by
+    /// a [`NonWordCharType::LeftPunc`], an implicit space is added in between.
     LeftPunc,
-    /// Right-associated CJK punctuations, a kind of non-word character. When a
-    /// word character follows a [`CharType::RightPunc`], an implicit space is
-    /// added in between.
+    /// Right-associated CJK punctuations. When a word character follows a
+    /// [`NonWordCharType::RightPunc`], an implicit space is added in between.
     RightPunc,
-    /// Isolated CJK punctuations, a kind of non-word character. When a word
-    /// character is followed by or follows a [`CharType::IsolatedPunc`], an
-    /// implicit space is added in between.
+    /// Isolated CJK punctuations. When a word character is followed by or
+    /// follows a [`NonWordCharType::IsolatedPunc`], an implicit space is added
+    /// in between.
     IsolatedPunc,
     /// Other non-word characters.
-    NonWord,
+    Other,
 }
 
 // The unicodes of CJK characters and punctuations are quoted from Github
@@ -64,13 +75,13 @@ fn categorize_char(c: char) -> CharType {
         // supplement.
         | '\u{2f00}'..='\u{2fd5}'
         | '\u{2e80}'..='\u{2ef3}'
-        => CharType::Hanzi,
+        => CharType::Word(WordCharType::Hanzi),
 
         // Default value of 'iskeyword' in Vim (ASCII range).
         'a'..='z' | 'A'..='Z' | '0'..='9' | '_'
         // Default value of 'iskeyword' in Vim (extended ASCII range).
         | '\u{c0}'..='\u{ff}'
-        => CharType::Word,
+        => CharType::Word(WordCharType::Other),
 
         // Fullwidth ASCII variants.
         '\u{ff04}' | '\u{ff08}' | '\u{ff3b}' | '\u{ff5b}' | '\u{ff5f}'
@@ -82,7 +93,7 @@ fn categorize_char(c: char) -> CharType {
         | '\u{3014}' | '\u{3016}' | '\u{3018}' | '\u{301a}' | '\u{301d}'
         // Quotation marks and apostrophe.
         | '\u{2018}' | '\u{201c}'
-        => CharType::LeftPunc,
+        => CharType::NonWord(NonWordCharType::LeftPunc),
 
         // Fullwidth ASCII variants.
         '\u{ff09}' | '\u{ff0c}' | '\u{ff1a}' | '\u{ff1b}' | '\u{ff3d}'
@@ -109,7 +120,7 @@ fn categorize_char(c: char) -> CharType {
         | '\u{ff61}'
         // Ideographic full stop.
         | '\u{3002}'
-        => CharType::RightPunc,
+        => CharType::NonWord(NonWordCharType::RightPunc),
 
         // Fullwidth ASCII variants.
         '\u{ff02}' | '\u{ff03}' |  '\u{ff06}'
@@ -139,9 +150,9 @@ fn categorize_char(c: char) -> CharType {
         | '\u{fe4f}'
         // Latin punctuation.
         | '\u{00b7}'
-        => CharType::IsolatedPunc,
+        => CharType::NonWord(NonWordCharType::IsolatedPunc),
 
-        _ => CharType::NonWord,
+        _ => CharType::NonWord(NonWordCharType::Other),
     }
 }
 
