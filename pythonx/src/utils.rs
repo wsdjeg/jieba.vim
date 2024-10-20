@@ -14,3 +14,11 @@ where
     }
     stack
 }
+
+pub fn chain_into_vec<T, I, J>(i: I, j: J) -> Vec<T>
+where
+    I: IntoIterator<Item = T>,
+    J: IntoIterator<Item = T>,
+{
+    i.into_iter().chain(j.into_iter()).collect()
+}
