@@ -864,4 +864,35 @@ mod tests {
             vec![token!(0, 4, 7, Word), token!(7, 16, 19, Word)]
         );
     }
+
+    #[test]
+    fn test_parse_hanzi_1_word() {
+        let tokens = parse_str_test("（你好——世界）。", true);
+        assert_eq!(
+            tokens,
+            vec![
+                token!(0, 0, 3, Word),    // "（"
+                token!(3, 3, 6, Word),    // "你"
+                token!(6, 6, 9, Word),    // "好"
+                token!(9, 12, 15, Word),  // "——"
+                token!(15, 18, 21, Word), // "世界"
+                token!(21, 24, 27, Word), // "）。"
+            ]
+        );
+    }
+
+    #[test]
+    #[allow(non_snake_case)]
+    fn test_parse_hanzi_1_WORD() {
+        let tokens = parse_str_test("（你好——世界）。", false);
+        assert_eq!(
+            tokens,
+            vec![
+                token!(0, 3, 6, Word),    // "（你"
+                token!(6, 6, 9, Word),    // "好"
+                token!(9, 12, 15, Word),  // "——"
+                token!(15, 24, 27, Word), // "世界）。"
+            ]
+        );
+    }
 }
