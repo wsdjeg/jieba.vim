@@ -1,6 +1,8 @@
-use jieba_rs::Jieba;
-
 use crate::utils;
+
+pub trait JiebaPlaceholder {
+    fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str>;
+}
 
 /// Character types.
 #[derive(Debug)]
@@ -511,10 +513,10 @@ fn insert_implicit_whitespace_in_cut_result_rule(
 /// of type [`WordCharGroupType::Other`] before inserting the implicit
 /// whitespaces. [`insert_implicit_whitespace_in_cut_result_rule`] achieves the
 /// concatenation and insertion implicit whitespaces work.
-fn cut_hanzi_rule(
+fn cut_hanzi_rule<C: JiebaPlaceholder>(
     prev_group: Option<CharGroup>,
     group: CharGroup,
-    jieba: &Jieba,
+    jieba: &C,
 ) -> Vec<CharGroup> {
     use CharGroupType::*;
     use WordCharGroupType as W;
@@ -522,7 +524,7 @@ fn cut_hanzi_rule(
         Word(W::Hanzi) => {
             let s = group.to_string();
             let n_chars: Vec<_> = jieba
-                .cut(&s, true)
+                .cut(&s)
                 .into_iter()
                 .map(|part| part.chars().count())
                 .collect();
@@ -594,7 +596,10 @@ fn remove_implicit_whitespace_rule(
 }
 
 /// Parse a vec of [`Char`]s into `word`s and space.
-fn parse_chars_into_words(chars: Vec<Char>, jieba: &Jieba) -> Vec<Token> {
+fn parse_chars_into_words<C: JiebaPlaceholder>(
+    chars: Vec<Char>,
+    jieba: &C,
+) -> Vec<Token> {
     let groups = utils::stack_merge(chars, &(), group_chars_rule);
     let groups = utils::stack_merge(groups, jieba, cut_hanzi_rule);
     let groups =
@@ -626,7 +631,10 @@ fn concat_nonspace_groups_rule(
 
 /// Parse a vec of [`Char`]s into `WORD`s and space.
 #[allow(non_snake_case)]
-fn parse_chars_into_WORDs(chars: Vec<Char>, jieba: &Jieba) -> Vec<Token> {
+fn parse_chars_into_WORDs<C: JiebaPlaceholder>(
+    chars: Vec<Char>,
+    jieba: &C,
+) -> Vec<Token> {
     let groups = utils::stack_merge(chars, &(), group_chars_rule);
     let groups = utils::stack_merge(groups, jieba, cut_hanzi_rule);
     let groups = utils::stack_merge(groups, &(), concat_nonspace_groups_rule);
@@ -637,9 +645,9 @@ fn parse_chars_into_WORDs(chars: Vec<Char>, jieba: &Jieba) -> Vec<Token> {
 
 /// Parse `line` into tokens. If `into_word` is `true`, the non-space tokens
 /// will be interpretable as `word`s; otherwise, they will be `WORD`s.
-pub fn parse_str<S: AsRef<str>>(
+pub fn parse_str<S: AsRef<str>, C: JiebaPlaceholder>(
     line: S,
-    jieba: &Jieba,
+    jieba: &C,
     into_word: bool,
 ) -> Vec<Token> {
     let chars = parse_str_into_chars(line.as_ref());
@@ -653,9 +661,15 @@ pub fn parse_str<S: AsRef<str>>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use once_cell::sync::Lazy;
+    use jieba_rs::Jieba;
+    use once_cell::sync::OnceCell;
     use proptest::prelude::*;
-    use std::io::BufReader;
+
+    impl JiebaPlaceholder for Jieba {
+        fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
+            self.cut(sentence, true)
+        }
+    }
 
     #[test]
     fn test_categorize_char_sanity_check() {
@@ -736,13 +750,15 @@ mod tests {
         );
     }
 
-    static JIEBA: Lazy<Jieba> = Lazy::new(|| {
-        let mut dict = BufReader::new(crate::DICT.as_bytes());
-        Jieba::with_dict(&mut dict).unwrap()
-    });
+    static JIEBA: OnceCell<Jieba> = OnceCell::new();
+
+    #[ctor::ctor]
+    fn init() {
+        JIEBA.get_or_init(|| Jieba::new());
+    }
 
     fn parse_str_test(s: &str, into_word: bool) -> Vec<Token> {
-        parse_str(s, &JIEBA, into_word)
+        parse_str(s, JIEBA.get().unwrap(), into_word)
     }
 
     proptest! {

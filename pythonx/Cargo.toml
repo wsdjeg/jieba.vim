@@ -1,3 +1,8 @@
+[workspace]
+members = [
+    "jieba_vim_rs_core",
+]
+
 [package]
 name = "jieba_navi_rs"
 version = "0.1.1"
@@ -15,9 +20,9 @@ jieba-rs = { version = "0.7", default-features = false }
 regex = "1.10"
 const_format = "0.2"
 once_cell = "1.19"
+jieba_vim_rs_core = { path = "jieba_vim_rs_core" }
 
 [dev-dependencies]
-proptest = "1.0"
 
 [build-dependencies]
 pyo3-build-config = "0.22"
