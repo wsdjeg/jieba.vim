@@ -161,15 +161,15 @@ fn categorize_char(c: char) -> CharType {
 }
 
 /// The column location of a char or a token in a line.
-#[derive(Debug, PartialEq, Eq)]
-struct Col {
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct Col {
     /// The byte offset of the first char in the token.
-    start_byte_index: usize,
+    pub start_byte_index: usize,
     /// The byte offset of the last char in the token.
-    incl_end_byte_index: usize,
+    pub incl_end_byte_index: usize,
     /// [`Col::incl_end_byte_index`] plus the byte length of the last char in
     /// utf-8.
-    excl_end_byte_index: usize,
+    pub excl_end_byte_index: usize,
 }
 
 /// A Char token.
@@ -542,14 +542,14 @@ fn cut_hanzi_rule(
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct Token {
-    col: Col,
-    ty: TokenType,
+    pub col: Col,
+    pub ty: TokenType,
 }
 
 /// Token types.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum TokenType {
     /// Either a word or a WORD token, depending on the context.
     ///
@@ -637,8 +637,12 @@ fn parse_chars_into_WORDs(chars: Vec<Char>, jieba: &Jieba) -> Vec<Token> {
 
 /// Parse `line` into tokens. If `into_word` is `true`, the non-space tokens
 /// will be interpretable as `word`s; otherwise, they will be `WORD`s.
-pub fn parse_str(line: &str, jieba: &Jieba, into_word: bool) -> Vec<Token> {
-    let chars = parse_str_into_chars(line);
+pub fn parse_str<S: AsRef<str>>(
+    line: S,
+    jieba: &Jieba,
+    into_word: bool,
+) -> Vec<Token> {
+    let chars = parse_str_into_chars(line.as_ref());
     if into_word {
         parse_chars_into_words(chars, jieba)
     } else {
