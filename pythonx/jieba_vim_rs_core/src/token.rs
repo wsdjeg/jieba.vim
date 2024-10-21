@@ -659,6 +659,25 @@ pub fn parse_str<S: AsRef<str>, C: JiebaPlaceholder>(
 }
 
 #[cfg(test)]
+pub mod test_macros {
+    #[macro_export]
+    macro_rules! token {
+        ($i:literal, $j:literal, $k:literal, $t:ident) => {
+            crate::token::Token {
+                col: crate::token::Col {
+                    start_byte_index: $i,
+                    incl_end_byte_index: $j,
+                    excl_end_byte_index: $k,
+                },
+                ty: crate::token::TokenType::$t,
+            }
+        };
+    }
+
+    pub use token;
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use jieba_rs::Jieba;
@@ -792,19 +811,6 @@ mod tests {
         }
     }
 
-    macro_rules! token {
-        ($i:literal, $j:literal, $k:literal, $t:ident) => {
-            Token {
-                col: Col {
-                    start_byte_index: $i,
-                    incl_end_byte_index: $j,
-                    excl_end_byte_index: $k,
-                },
-                ty: TokenType::$t,
-            }
-        };
-    }
-
     #[test]
     fn test_parse_empty() {
         let tokens = parse_str_test("", true);
@@ -820,10 +826,10 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                token!(0, 4, 5, Word),
-                token!(5, 5, 6, Word),
-                token!(6, 6, 7, Space),
-                token!(7, 11, 12, Word),
+                test_macros::token!(0, 4, 5, Word),
+                test_macros::token!(5, 5, 6, Word),
+                test_macros::token!(6, 6, 7, Space),
+                test_macros::token!(7, 11, 12, Word),
             ]
         );
     }
@@ -835,9 +841,9 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                token!(0, 5, 6, Word),
-                token!(6, 6, 7, Space),
-                token!(7, 11, 12, Word),
+                test_macros::token!(0, 5, 6, Word),
+                test_macros::token!(6, 6, 7, Space),
+                test_macros::token!(7, 11, 12, Word),
             ]
         );
     }
@@ -847,7 +853,10 @@ mod tests {
         let tokens = parse_str_test("B超foo_bar", true);
         assert_eq!(
             tokens,
-            vec![token!(0, 1, 4, Word), token!(4, 10, 11, Word)]
+            vec![
+                test_macros::token!(0, 1, 4, Word),
+                test_macros::token!(4, 10, 11, Word),
+            ]
         );
     }
 
@@ -857,7 +866,10 @@ mod tests {
         let tokens = parse_str_test("B超foo_bar", false);
         assert_eq!(
             tokens,
-            vec![token!(0, 1, 4, Word), token!(4, 10, 11, Word)]
+            vec![
+                test_macros::token!(0, 1, 4, Word),
+                test_macros::token!(4, 10, 11, Word),
+            ]
         );
     }
 
@@ -867,10 +879,10 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                token!(0, 1, 4, Word),
-                token!(4, 4, 7, Word),
-                token!(7, 9, 10, Word),
-                token!(10, 16, 19, Word),
+                test_macros::token!(0, 1, 4, Word),
+                test_macros::token!(4, 4, 7, Word),
+                test_macros::token!(7, 9, 10, Word),
+                test_macros::token!(10, 16, 19, Word),
             ]
         );
     }
@@ -881,7 +893,10 @@ mod tests {
         let tokens = parse_str_test("B超，foo。。。", false);
         assert_eq!(
             tokens,
-            vec![token!(0, 4, 7, Word), token!(7, 16, 19, Word)]
+            vec![
+                test_macros::token!(0, 4, 7, Word),
+                test_macros::token!(7, 16, 19, Word),
+            ]
         );
     }
 
@@ -891,11 +906,11 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                token!(0, 0, 3, Word),    // "（"
-                token!(3, 6, 9, Word),    // "你好"
-                token!(9, 12, 15, Word),  // "——"
-                token!(15, 18, 21, Word), // "世界"
-                token!(21, 24, 27, Word), // "）。"
+                test_macros::token!(0, 0, 3, Word),    // "（"
+                test_macros::token!(3, 6, 9, Word),    // "你好"
+                test_macros::token!(9, 12, 15, Word),  // "——"
+                test_macros::token!(15, 18, 21, Word), // "世界"
+                test_macros::token!(21, 24, 27, Word), // "）。"
             ]
         );
     }
@@ -907,9 +922,9 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                token!(0, 6, 9, Word),    // "（你好"
-                token!(9, 12, 15, Word),  // "——"
-                token!(15, 24, 27, Word), // "世界）。"
+                test_macros::token!(0, 6, 9, Word), // "（你好"
+                test_macros::token!(9, 12, 15, Word), // "——"
+                test_macros::token!(15, 24, 27, Word), // "世界）。"
             ]
         );
     }
