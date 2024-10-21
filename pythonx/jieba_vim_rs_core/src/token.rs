@@ -892,8 +892,7 @@ mod tests {
             tokens,
             vec![
                 token!(0, 0, 3, Word),    // "（"
-                token!(3, 3, 6, Word),    // "你"
-                token!(6, 6, 9, Word),    // "好"
+                token!(3, 6, 9, Word),    // "你好"
                 token!(9, 12, 15, Word),  // "——"
                 token!(15, 18, 21, Word), // "世界"
                 token!(21, 24, 27, Word), // "）。"
@@ -908,8 +907,7 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                token!(0, 3, 6, Word),    // "（你"
-                token!(6, 6, 9, Word),    // "好"
+                token!(0, 6, 9, Word),    // "（你好"
                 token!(9, 12, 15, Word),  // "——"
                 token!(15, 24, 27, Word), // "世界）。"
             ]
