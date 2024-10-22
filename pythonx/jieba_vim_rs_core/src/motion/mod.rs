@@ -1,6 +1,7 @@
 use crate::token::{JiebaPlaceholder, Token};
 use std::cmp::Ordering;
 
+mod nmap_w;
 mod token_iter;
 
 /// Any type that resembles a Vim buffer.
