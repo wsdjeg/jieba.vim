@@ -1,6 +1,8 @@
 use crate::token::{JiebaPlaceholder, Token};
 use std::cmp::Ordering;
 
+mod token_iter;
+
 /// Any type that resembles a Vim buffer.
 pub trait BufferLike {
     type Error;
