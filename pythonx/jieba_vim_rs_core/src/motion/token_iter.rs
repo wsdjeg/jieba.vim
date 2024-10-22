@@ -11,15 +11,15 @@ pub struct TokenIteratorItem {
     pub token: Option<Token>,
     /// `true` if the cursor lies in current token.
     pub cursor: bool,
+    /// `true` if the cursor lies in a token at end-of-line.
+    pub eol: bool,
 }
 
 /// Forward iterator of `(lnum, token)`s in a `buffer`. If the cursor `col` is
 /// in a token, starts from that token; if `col` is to the right of the last
 /// token in current line, starts from the next token in the buffer. An empty
-/// line is regarded as a `None` token.
-///
-/// Implication: if the cursor starts at an empty line, the first token yielded
-/// by the iterator will be the next token, not current empty token.
+/// line is regarded as a `None` token. If the cursor is at an empty line, also
+/// starts from that empty line.
 pub struct ForwardTokenIterator<'b, 'p, B: ?Sized, C> {
     buffer: &'b B,
     jieba: &'p C,
@@ -29,6 +29,7 @@ pub struct ForwardTokenIterator<'b, 'p, B: ?Sized, C> {
     lines: usize,
     word: bool,
     cursor: bool,
+    eol: bool,
 }
 
 impl<'b, 'p, B, C> ForwardTokenIterator<'b, 'p, B, C>
@@ -48,7 +49,10 @@ where
         let tokens = token::parse_str(buffer.getline(lnum)?, jieba, word);
         let token_index =
             super::index_tokens(&tokens, col).unwrap_or(tokens.len());
-        let cursor = token_index < tokens.len();
+        let cursor = (token_index == 0 && tokens.is_empty())
+            || token_index < tokens.len();
+        let eol = (token_index == 0 && tokens.is_empty())
+            || token_index == tokens.len() - 1;
         let lines = buffer.lines()?;
         Ok(Self {
             buffer,
@@ -59,6 +63,7 @@ where
             lines,
             word,
             cursor,
+            eol,
         })
     }
 
@@ -84,11 +89,24 @@ where
             if self.token_index < self.tokens.len() {
                 let to_yield =
                     self.tokens.get(self.token_index).copied().unwrap();
+                let eol = self.token_index == self.tokens.len() - 1;
                 self.token_index += 1;
                 Some(Ok(TokenIteratorItem {
                     lnum: self.lnum,
                     token: Some(to_yield),
                     cursor: self.cursor,
+                    eol,
+                }))
+            } else if self.cursor
+                && self.tokens.is_empty()
+                && self.token_index == 0
+            {
+                // The cursor line is empty.
+                Some(Ok(TokenIteratorItem {
+                    lnum: self.lnum,
+                    token: None,
+                    cursor: self.cursor,
+                    eol: true,
                 }))
             } else if self.lnum < self.lines {
                 match self.fetch_next_line(self.lnum) {
@@ -101,6 +119,7 @@ where
                                 lnum: self.lnum,
                                 token: None,
                                 cursor: self.cursor,
+                                eol: true,
                             }))
                         } else {
                             let to_yield = self
@@ -108,11 +127,13 @@ where
                                 .get(self.token_index)
                                 .copied()
                                 .unwrap();
+                            let eol = self.token_index == self.tokens.len() - 1;
                             self.token_index += 1;
                             Some(Ok(TokenIteratorItem {
                                 lnum: self.lnum,
                                 token: Some(to_yield),
                                 cursor: self.cursor,
+                                eol,
                             }))
                         }
                     }
@@ -135,12 +156,13 @@ mod tests {
     use jieba_rs::Jieba;
     use once_cell::sync::OnceCell;
 
-    impl From<(usize, Option<Token>, bool)> for TokenIteratorItem {
-        fn from(value: (usize, Option<Token>, bool)) -> Self {
+    impl From<(usize, Option<Token>, bool, bool)> for TokenIteratorItem {
+        fn from(value: (usize, Option<Token>, bool, bool)) -> Self {
             Self {
                 lnum: value.0,
                 token: value.1,
                 cursor: value.2,
+                eol: value.3,
             }
         }
     }
@@ -166,19 +188,39 @@ mod tests {
     fn test_forward_token_iterator() {
         let buffer = vec![""];
         let it = get_forward_token_iterator(&buffer, 1, 0, true);
-        assert!(it.collect::<Vec<_>>().is_empty());
+        assert_eq!(
+            it.collect::<Vec<_>>(),
+            vec![Ok((1, None, true, true).into())]
+        );
 
-        let buffer = vec!["", ""];
+        let buffer = vec!["", "", ""];
         let it = get_forward_token_iterator(&buffer, 1, 0, true);
-        assert_eq!(it.collect::<Vec<_>>(), vec![Ok((2, None, false).into())]);
+        assert_eq!(
+            it.collect::<Vec<_>>(),
+            vec![
+                Ok((1, None, true, true).into()),
+                Ok((2, None, false, true).into()),
+                Ok((3, None, false, true).into()),
+            ]
+        );
+        let it = get_forward_token_iterator(&buffer, 2, 0, true);
+        assert_eq!(
+            it.collect::<Vec<_>>(),
+            vec![
+                Ok((2, None, true, true).into()),
+                Ok((3, None, false, true).into()),
+            ]
+        );
 
         let buffer = vec!["", " "];
         let it = get_forward_token_iterator(&buffer, 1, 0, true);
         assert_eq!(
             it.collect::<Vec<_>>(),
-            vec![Ok(
-                (2, Some(test_macros::token!(0, 0, 1, Space)), false).into()
-            )]
+            vec![
+                Ok((1, None, true, true).into()),
+                Ok((2, Some(test_macros::token!(0, 0, 1, Space)), false, true)
+                    .into()),
+            ]
         );
 
         let buffer = vec!["aaa  "];
@@ -186,24 +228,33 @@ mod tests {
         assert_eq!(
             it.collect::<Vec<_>>(),
             vec![
-                Ok((1, Some(test_macros::token!(0, 2, 3, Word)), true).into()),
-                Ok((1, Some(test_macros::token!(3, 4, 5, Space)), false)
+                Ok((1, Some(test_macros::token!(0, 2, 3, Word)), true, false)
+                    .into()),
+                Ok((1, Some(test_macros::token!(3, 4, 5, Space)), false, true)
                     .into()),
             ]
         );
         let it = get_forward_token_iterator(&buffer, 1, 3, true);
         assert_eq!(
             it.collect::<Vec<_>>(),
-            vec![Ok(
-                (1, Some(test_macros::token!(3, 4, 5, Space)), true).into()
-            )]
+            vec![Ok((
+                1,
+                Some(test_macros::token!(3, 4, 5, Space)),
+                true,
+                true
+            )
+                .into())]
         );
         let it = get_forward_token_iterator(&buffer, 1, 4, true);
         assert_eq!(
             it.collect::<Vec<_>>(),
-            vec![Ok(
-                (1, Some(test_macros::token!(3, 4, 5, Space)), true).into()
-            )]
+            vec![Ok((
+                1,
+                Some(test_macros::token!(3, 4, 5, Space)),
+                true,
+                true
+            )
+                .into())]
         );
         let it = get_forward_token_iterator(&buffer, 1, 5, true);
         assert!(it.collect::<Vec<_>>().is_empty());
@@ -213,10 +264,17 @@ mod tests {
         assert_eq!(
             it.collect::<Vec<_>>(),
             vec![
-                Ok((1, Some(test_macros::token!(0, 2, 3, Word)), true).into()),
-                Ok((1, Some(test_macros::token!(3, 3, 4, Space)), false)
+                Ok((1, Some(test_macros::token!(0, 2, 3, Word)), true, false)
                     .into()),
-                Ok((1, Some(test_macros::token!(4, 6, 7, Word)), false).into()),
+                Ok((
+                    1,
+                    Some(test_macros::token!(3, 3, 4, Space)),
+                    false,
+                    false
+                )
+                    .into()),
+                Ok((1, Some(test_macros::token!(4, 6, 7, Word)), false, true)
+                    .into()),
             ]
         );
 
@@ -225,15 +283,45 @@ mod tests {
         assert_eq!(
             it.collect::<Vec<_>>(),
             vec![
-                Ok((1, Some(test_macros::token!(0, 2, 3, Word)), true).into()),
-                Ok((2, Some(test_macros::token!(0, 1, 2, Word)), false).into()),
-                Ok((2, Some(test_macros::token!(2, 2, 3, Space)), false)
+                Ok((1, Some(test_macros::token!(0, 2, 3, Word)), true, true)
                     .into()),
-                Ok((2, Some(test_macros::token!(3, 4, 5, Word)), false).into()),
-                Ok((3, None, false).into()),
-                Ok((4, Some(test_macros::token!(0, 1, 2, Space)), false)
+                Ok((2, Some(test_macros::token!(0, 1, 2, Word)), false, false)
                     .into()),
-                Ok((4, Some(test_macros::token!(2, 4, 5, Word)), false).into()),
+                Ok((
+                    2,
+                    Some(test_macros::token!(2, 2, 3, Space)),
+                    false,
+                    false
+                )
+                    .into()),
+                Ok((2, Some(test_macros::token!(3, 4, 5, Word)), false, true)
+                    .into()),
+                Ok((3, None, false, true).into()),
+                Ok((
+                    4,
+                    Some(test_macros::token!(0, 1, 2, Space)),
+                    false,
+                    false
+                )
+                    .into()),
+                Ok((4, Some(test_macros::token!(2, 4, 5, Word)), false, true)
+                    .into()),
+            ]
+        );
+        let it = get_forward_token_iterator(&buffer, 3, 0, true);
+        assert_eq!(
+            it.collect::<Vec<_>>(),
+            vec![
+                Ok((3, None, true, true).into()),
+                Ok((
+                    4,
+                    Some(test_macros::token!(0, 1, 2, Space)),
+                    false,
+                    false
+                )
+                    .into()),
+                Ok((4, Some(test_macros::token!(2, 4, 5, Word)), false, true)
+                    .into()),
             ]
         )
     }
