@@ -2,7 +2,7 @@ use crate::token::{JiebaPlaceholder, Token};
 use std::cmp::Ordering;
 
 /// Any type that resembles a Vim buffer.
-trait BufferLike {
+pub trait BufferLike {
     type Error;
 
     /// Get the line at line number `lnum` (1-indexed).
@@ -67,6 +67,8 @@ pub mod test_macros {
 
 #[cfg(test)]
 pub mod test_utils {
+    use super::BufferLike;
+
     /// Markers of cursor in a string.
     pub struct CursorMarker {
         /// The cursor before the motion.
@@ -133,6 +135,30 @@ pub mod test_utils {
                 }
             }
             (before_position.unwrap(), after_position.unwrap())
+        }
+    }
+
+    impl BufferLike for Vec<&'static str> {
+        type Error = ();
+
+        fn getline(&self, lnum: usize) -> Result<String, Self::Error> {
+            self.get(lnum - 1).map(|s| s.to_string()).ok_or(())
+        }
+
+        fn lines(&self) -> Result<usize, Self::Error> {
+            Ok(self.len())
+        }
+    }
+
+    impl BufferLike for Vec<String> {
+        type Error = ();
+
+        fn getline(&self, lnum: usize) -> Result<String, Self::Error> {
+            self.get(lnum - 1).map(|s| s.to_string()).ok_or(())
+        }
+
+        fn lines(&self) -> Result<usize, Self::Error> {
+            Ok(self.len())
         }
     }
 
