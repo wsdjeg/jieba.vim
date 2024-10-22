@@ -85,6 +85,8 @@ mod tests {
         ),
         (
             test_word_motion_nmap_w_one_word:
+            ["aaa{}a"], 1, true;
+            ["aaa{}a"], 1, false;
             ["a{aa}a"], 1, true;
             ["a{aa}a"], 1, false;
             ["a{aa}a"], 2, true;
