@@ -79,12 +79,12 @@ mod tests {
 
     word_motion_tests! { (nmap_w)
         (
-            test_word_motion_nmap_w_empty:
+            test_empty:
             ["{}"], 1, true;
             ["{}"], 1, false;
         ),
         (
-            test_word_motion_nmap_w_one_word:
+            test_one_word:
             ["aaa{}a"], 1, true;
             ["aaa{}a"], 1, false;
             ["a{aa}a"], 1, true;
@@ -97,7 +97,7 @@ mod tests {
             ["{你}好"], 1, false;
         ),
         (
-            test_word_motion_nmap_w_one_word_space:
+            test_one_word_space:
             ["a{aaa   } "], 1, true;
             ["a{aaa   } "], 1, false;
             ["a{aaa   } "], 1, true;
@@ -108,7 +108,7 @@ mod tests {
             ["你好 { } "], 1, false;
         ),
         (
-            test_word_motion_nmap_w_two_words:
+            test_two_words:
             ["a{aaa  }aaa"], 1, true;
             ["a{aaa  }aaa"], 1, false;
             ["a{aaa  aa}a"], 2, true;
@@ -123,7 +123,7 @@ mod tests {
             ["{你好  世}界"], 2, false;
         ),
         (
-            test_word_motion_nmap_w_one_word_new_line:
+            test_one_word_new_line:
             ["a{aaa", "}"], 1, true;
             ["a{aaa", "}"], 1, false;
             ["{你好", "}"], 1, true;
@@ -132,7 +132,7 @@ mod tests {
             ["你{好", "}"], 1, false;
         ),
         (
-            test_word_motion_nmap_w_one_word_space_new_line:
+            test_one_word_space_new_line:
             ["a{aaa    ", "}"], 1, true;
             ["a{aaa    ", "}"], 1, false;
             ["aaaa{    ", "}"], 1, true;
@@ -141,7 +141,7 @@ mod tests {
             ["{你好    ", "}"], 1, false;
         ),
         (
-            test_word_motion_nmap_w_one_word_new_line_space:
+            test_one_word_new_line_space:
             ["a{aaa", "   } "], 1, true;
             ["a{aaa", "   } "], 1, false;
             ["a{aaa", "  ", "   } "], 1, true;
@@ -151,7 +151,7 @@ mod tests {
             ["你{好", "  ", "   } "], 1, true;
         ),
         (
-            test_word_motion_nmap_w_one_word_new_line_space_new_line:
+            test_one_word_new_line_space_new_line:
             ["a{aaa", " ", "}"], 1, true;
             ["a{aaa", " ", "}"], 1, false;
             ["a{aaa", " ", " ", "}"], 1, true;
@@ -160,7 +160,7 @@ mod tests {
             ["{你好", " ", " ", "}"], 1, false;
         ),
         (
-            test_word_motion_nmap_w_large_unnecessary_count < 100:
+            test_large_unnecessary_count < 100:
             ["{}"], 10293949403, true;
             ["{}"], 10293949403, false;
             ["a{aa aaa}a"], 10293949403, true;
@@ -169,11 +169,11 @@ mod tests {
             ["aaa {aaa}a"], 10293949403, false;
         ),
         (
-            test_word_motion_nmap_w_jieba_efficiency1 < 50:
+            test_jieba_efficiency1 < 50:
             ["{你好}，世界"], 1, true;
         ),
         (
-            test_word_motion_nmap_w_jieba_efficiency2 < 50:
+            test_jieba_efficiency2 < 50:
             ["{你好，}世界"], 1, false;
         ),
     }
