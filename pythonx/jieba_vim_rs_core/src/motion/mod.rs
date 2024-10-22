@@ -43,6 +43,22 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 #[cfg(test)]
 pub mod test_macros {
     #[macro_export]
+    macro_rules! setup_word_motion_tests {
+        () => {
+            static WORD_MOTION: once_cell::sync::OnceCell<
+                crate::motion::WordMotion<jieba_rs::Jieba>,
+            > = once_cell::sync::OnceCell::new();
+
+            #[ctor::ctor]
+            fn init() {
+                WORD_MOTION.get_or_init(|| {
+                    crate::motion::WordMotion::new(jieba_rs::Jieba::new())
+                });
+            }
+        };
+    }
+
+    #[macro_export]
     macro_rules! word_motion_tests {
         ( ($motion_fun:ident)  $((
                 $test_name:ident $(< $timeout:literal)?:
@@ -64,7 +80,7 @@ pub mod test_macros {
         };
     }
 
-    pub use word_motion_tests;
+    pub use {setup_word_motion_tests, word_motion_tests};
 }
 
 #[cfg(test)]
