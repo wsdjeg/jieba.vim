@@ -658,6 +658,45 @@ pub fn parse_str<S: AsRef<str>, C: JiebaPlaceholder>(
     }
 }
 
+/// A token or an empty line.
+pub trait TokenLike {
+    /// The byte position of the first character in the token.
+    fn first_char(&self) -> usize;
+    /// The byte position of the last character in the token.
+    fn last_char(&self) -> usize;
+    /// The byte position of the end of the last character in the token.
+    fn last_char1(&self) -> usize;
+}
+
+impl TokenLike for Token {
+    fn first_char(&self) -> usize {
+        self.col.start_byte_index
+    }
+
+    fn last_char(&self) -> usize {
+        self.col.incl_end_byte_index
+    }
+
+    fn last_char1(&self) -> usize {
+        self.col.excl_end_byte_index
+    }
+}
+
+// `None` is used to denote the empty line.
+impl TokenLike for Option<Token> {
+    fn first_char(&self) -> usize {
+        self.map(|t| t.first_char()).unwrap_or(0)
+    }
+
+    fn last_char(&self) -> usize {
+        self.map(|t| t.last_char()).unwrap_or(0)
+    }
+
+    fn last_char1(&self) -> usize {
+        self.map(|t| t.last_char1()).unwrap_or(0)
+    }
+}
+
 #[cfg(test)]
 pub mod test_macros {
     #[macro_export]
