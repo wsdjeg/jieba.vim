@@ -100,8 +100,10 @@ mod tests {
             test_one_word_space:
             ["a{aaa   } "], 1, true;
             ["a{aaa   } "], 1, false;
-            ["a{aaa   } "], 1, true;
-            ["a{aaa   } "], 1, false;
+            ["aaa{a   } "], 1, true;
+            ["aaa{a   } "], 1, false;
+            ["aaaa {  } "], 1, true;
+            ["aaaa {  } "], 1, false;
             ["{你好  } "], 1, true;
             ["{你好  } "], 1, false;
             ["你好 { } "], 1, true;
@@ -147,6 +149,8 @@ mod tests {
             ["a{aaa", "  ", "   } "], 1, true;
             ["a{aaa", "  ", "   } "], 1, false;
             ["aaaa", "{  ", "   } "], 1, true;
+            ["a{aa", "}", "   "], 1, true;
+            ["a{aaa", "}", "   "], 1, false;
             ["{你好", "  ", "   } "], 1, true;
             ["你{好", "  ", "   } "], 1, true;
         ),
@@ -154,10 +158,10 @@ mod tests {
             test_one_word_new_line_space_new_line:
             ["a{aaa", " ", "}"], 1, true;
             ["a{aaa", " ", "}"], 1, false;
-            ["a{aaa", " ", " ", "}"], 1, true;
-            ["a{aaa", " ", " ", "}"], 1, false;
-            ["{你好", " ", " ", "}"], 1, true;
-            ["{你好", " ", " ", "}"], 1, false;
+            ["a{aaa", " ", " ", "}", "  "], 1, true;
+            ["a{aaa", " ", " ", "}", "  "], 1, false;
+            ["{你好", " ", " ", "}", "  "], 1, true;
+            ["{你好", " ", " ", "}", "  "], 1, false;
         ),
         (
             test_large_unnecessary_count < 100:
