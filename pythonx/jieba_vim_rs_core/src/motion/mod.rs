@@ -241,3 +241,13 @@ pub mod test_utils {
         cm.strip_markers(&mut lines);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::index_tokens;
+
+    #[test]
+    fn test_index_tokens() {
+        assert_eq!(index_tokens(&[], 0), None);
+    }
+}
