@@ -1,6 +1,6 @@
 use assert_cmd::Command;
 use core::{fmt, panic};
-use jieba_vim_rs_test::cursor_marker::{CursorMarker, StripMarkerOutput};
+use jieba_vim_rs_test::cursor_marker::{CursorMarker, CursorPosition};
 use once_cell::sync::Lazy;
 use proc_macro::TokenStream;
 use quote::quote;
@@ -70,7 +70,9 @@ impl fmt::Display for Motion {
 struct VerifiedCaseInput {
     group_id: Ident,
     test_name: Ident,
-    buffers: Vec<LitStr>,
+    before_cursor_position: CursorPosition,
+    after_cursor_position: CursorPosition,
+    buffers: Vec<String>,
     mode: Mode,
     operator: LitStr,
     motion: Motion,
@@ -86,10 +88,20 @@ impl Parse for VerifiedCaseInput {
 
         let content;
         syn::bracketed!(content in input);
-        let buffers = content
+        let buffers: Vec<String> = content
             .parse_terminated(|s| s.parse::<LitStr>(), Token![,])?
             .into_iter()
+            .map(|s| s.value())
             .collect();
+        let parsed_buffers = match CursorMarker.strip_markers(buffers) {
+            Err(err) => {
+                return Err(input.error(format!(
+                    "Failed to parse cursor positions from buffers: {:?}",
+                    err
+                )))
+            }
+            Ok(o) => o,
+        };
         input.parse::<Token![,]>()?;
 
         let mode: LitStr = input.parse()?;
@@ -160,7 +172,9 @@ impl Parse for VerifiedCaseInput {
         Ok(VerifiedCaseInput {
             group_id,
             test_name,
-            buffers,
+            before_cursor_position: parsed_buffers.before_cursor_position,
+            after_cursor_position: parsed_buffers.after_cursor_position,
+            buffers: parsed_buffers.striped_lines,
             mode,
             operator,
             motion,
@@ -185,16 +199,12 @@ fn write_vader_given_block<W: Write>(
 }
 
 impl VerifiedCaseInput {
-    fn write_vader<W: Write>(
-        &self,
-        mut tofile: W,
-        parsed_test_case: StripMarkerOutput,
-    ) -> io::Result<()> {
-        let buffer_lines = parsed_test_case.striped_lines;
-        let lnum_before = parsed_test_case.before_cursor_position.lnum;
-        let col_before = parsed_test_case.before_cursor_position.col + 1;
-        let lnum_after = parsed_test_case.after_cursor_position.lnum;
-        let col_after = parsed_test_case.after_cursor_position.col + 1;
+    fn write_vader<W: Write>(&self, mut tofile: W) -> io::Result<()> {
+        let buffer_lines = &self.buffers;
+        let lnum_before = self.before_cursor_position.lnum;
+        let col_before = self.before_cursor_position.col + 1;
+        let lnum_after = self.after_cursor_position.lnum;
+        let col_after = self.after_cursor_position.col + 1;
         let operator = self.operator.value();
         let motion = &self.motion;
 
@@ -379,17 +389,6 @@ fn verify_case(case_info: &VerifiedCaseInput) -> Result<bool, String> {
     // Form the unique case identifier.
     let case_name = format!("{}-{}", case_info.group_id, case_info.test_name);
 
-    // Parse the test case.
-    let cm = CursorMarker;
-    let buffer_lines: Vec<String> =
-        case_info.buffers.iter().map(|s| s.value()).collect();
-    let parsed_buffer_lines = match cm.strip_markers(buffer_lines) {
-        Err(err) => {
-            return Err(format!("Failed to parse buffer_lines: {:?}", err))
-        }
-        Ok(parsed) => parsed,
-    };
-
     // Create the vim vader test file.
     let vader_file_name = format!("{}.vader", case_name);
     let vader_file_path: PathBuf =
@@ -398,11 +397,9 @@ fn verify_case(case_info: &VerifiedCaseInput) -> Result<bool, String> {
         BufWriter::new(File::create(vader_file_path.clone()).map_err(
             |_| format!("Failed to create vader file: {:?}", vader_file_path),
         )?);
-    case_info
-        .write_vader(&mut vader_file, parsed_buffer_lines)
-        .map_err(|_| {
-            format!("Failed to write vader file: {:?}", vader_file_path)
-        })?;
+    case_info.write_vader(&mut vader_file).map_err(|_| {
+        format!("Failed to write vader file: {:?}", vader_file_path)
+    })?;
 
     // Run vader test with vim, and see if the case can be verified.
     let assert = Command::new("vim")
