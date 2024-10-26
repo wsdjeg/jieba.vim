@@ -25,9 +25,9 @@ impl AsRef<str> for Mode {
     fn as_ref(&self) -> &str {
         match self {
             Mode::Normal => "n",
-            Mode::VisualChar => "c",
-            Mode::VisualLine => "l",
-            Mode::VisualBlock => "b",
+            Mode::VisualChar => "xc",
+            Mode::VisualLine => "xl",
+            Mode::VisualBlock => "xb",
             Mode::Operator => "o",
         }
     }
@@ -107,13 +107,13 @@ impl Parse for VerifiedCaseInput {
         let mode: LitStr = input.parse()?;
         let mode = match mode.value().as_str() {
             "n" => Mode::Normal,
-            "c" => Mode::VisualChar,
-            "l" => Mode::VisualLine,
-            "b" => Mode::VisualBlock,
+            "xc" => Mode::VisualChar,
+            "xl" => Mode::VisualLine,
+            "xb" => Mode::VisualBlock,
             "o" => Mode::Operator,
             mode_str => {
                 return Err(input.error(format!(
-                    "Expecting 'n'/'c'/'l'/'b'/'o' but found: {}",
+                    "Expecting 'n'/'xc'/'xl'/'xb'/'o' but found: {}",
                     mode_str
                 )))
             }
