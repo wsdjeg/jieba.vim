@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+jieba_vim_rs_test_verifiable_case = { path = "../jieba_vim_rs_test_verifiable_case" }
+jieba_vim_rs_test = { path = "../jieba_vim_rs_test" }
 
 [dev-dependencies]
 jieba-rs = "0.7"
