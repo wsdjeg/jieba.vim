@@ -11,7 +11,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 use std::{env, fs, io};
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Ident, LitStr, Token};
+use syn::{parse_macro_input, Ident, LitInt, LitStr, Token};
 
 enum Mode {
     Normal,
@@ -142,20 +142,19 @@ impl Parse for VerifiedCaseInput {
         }
         input.parse::<Token![,]>()?;
 
+        let count: LitInt = input.parse()?;
+        input.parse::<Token![,]>()?;
         let motion: LitStr = input.parse()?;
         static MOTION_RE: Lazy<Regex> =
-            Lazy::new(|| Regex::new(r"^(\d+)?(w|W|e|E|b|B|ge|gE)$").unwrap());
+            Lazy::new(|| Regex::new(r"^(w|W|e|E|b|B|ge|gE)$").unwrap());
         let motion = match MOTION_RE.captures(&motion.value()) {
             None => {
                 return Err(input
                     .error(format!("Unexpected motion: {}", motion.value())))
             }
             Some(cap) => {
-                let count = cap
-                    .get(1)
-                    .map(|s| s.as_str().parse::<usize>().unwrap())
-                    .unwrap_or(0);
-                match cap.get(2).unwrap().as_str() {
+                let count = count.base10_parse::<usize>()?;
+                match cap.get(1).unwrap().as_str() {
                     "w" => Motion::SmallW(count),
                     "W" => Motion::LargeW(count),
                     "e" => Motion::SmallE(count),
@@ -308,12 +307,12 @@ Before:
 }
 
 /// Usage: `verified_case_dry_run!(group_id, test_name, buffer_lines, mode,
-/// operator, motion)`.
+/// operator, count, motion)`.
 ///
 /// For example,
 ///
 /// ```norun
-/// verified_case!(motion_nmap_w, test_empty, ["{abc }def"], "n", "", "w")
+/// verified_case!(motion_nmap_w, test_empty, ["{abc }def"], "n", "", 1, "w")
 /// ```
 #[proc_macro]
 pub fn verified_case(tokens: TokenStream) -> TokenStream {
@@ -350,12 +349,12 @@ pub fn verified_case(tokens: TokenStream) -> TokenStream {
 /// Check the macro input only without actually verifying the test case.
 ///
 /// Usage: `verified_case_dry_run!(group_id, test_name, buffer_lines, mode,
-/// operator, motion)`.
+/// operator, count, motion)`.
 ///
 /// For example,
 ///
 /// ```norun
-/// verified_case!(motion_nmap_w, test_empty, ["{abc }def"], "n", "", "w")
+/// verified_case!(motion_nmap_w, test_empty, ["{abc }def"], "n", "", 1, "w")
 /// ```
 #[proc_macro]
 pub fn verified_case_dry_run(input: TokenStream) -> TokenStream {
