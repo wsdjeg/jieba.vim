@@ -93,7 +93,7 @@ impl Parse for VerifiedCaseInput {
             .into_iter()
             .map(|s| s.value())
             .collect();
-        let parsed_buffers = match CursorMarker.strip_markers(buffers) {
+        let parsed_buffers = match CursorMarker.strip_markers(buffers.clone()) {
             Err(err) => {
                 return Err(input.error(format!(
                     "Failed to parse cursor positions from buffers: {:?}",
@@ -173,7 +173,7 @@ impl Parse for VerifiedCaseInput {
             test_name,
             before_cursor_position: parsed_buffers.before_cursor_position,
             after_cursor_position: parsed_buffers.after_cursor_position,
-            buffers: parsed_buffers.striped_lines,
+            buffers,
             mode,
             operator,
             motion,
