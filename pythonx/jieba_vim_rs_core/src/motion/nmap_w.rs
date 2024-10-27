@@ -135,7 +135,7 @@ mod tests {
                             motion_nmap_w,
                             [<$test_name _WORD_ $index>],
                             [$($buffer_item),*],
-                            "n", "", $count, "w");
+                            "n", "", $count, "W");
                         let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
                         let output = cm.strip_markers(buffer).unwrap();
                         let bc = output.before_cursor_position;
