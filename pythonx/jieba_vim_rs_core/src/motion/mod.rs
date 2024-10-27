@@ -86,31 +86,28 @@ pub mod test_macros {
 }
 
 #[cfg(test)]
-pub mod test_utils {
-    use super::BufferLike;
+impl BufferLike for Vec<&'static str> {
+    type Error = ();
 
-    impl BufferLike for Vec<&'static str> {
-        type Error = ();
-
-        fn getline(&self, lnum: usize) -> Result<String, Self::Error> {
-            self.get(lnum - 1).map(|s| s.to_string()).ok_or(())
-        }
-
-        fn lines(&self) -> Result<usize, Self::Error> {
-            Ok(self.len())
-        }
+    fn getline(&self, lnum: usize) -> Result<String, Self::Error> {
+        self.get(lnum - 1).map(|s| s.to_string()).ok_or(())
     }
 
-    impl BufferLike for Vec<String> {
-        type Error = ();
+    fn lines(&self) -> Result<usize, Self::Error> {
+        Ok(self.len())
+    }
+}
 
-        fn getline(&self, lnum: usize) -> Result<String, Self::Error> {
-            self.get(lnum - 1).map(|s| s.to_string()).ok_or(())
-        }
+#[cfg(test)]
+impl BufferLike for Vec<String> {
+    type Error = ();
 
-        fn lines(&self) -> Result<usize, Self::Error> {
-            Ok(self.len())
-        }
+    fn getline(&self, lnum: usize) -> Result<String, Self::Error> {
+        self.get(lnum - 1).map(|s| s.to_string()).ok_or(())
+    }
+
+    fn lines(&self) -> Result<usize, Self::Error> {
+        Ok(self.len())
     }
 }
 
