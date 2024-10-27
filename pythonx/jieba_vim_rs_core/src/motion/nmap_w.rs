@@ -71,13 +71,84 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::test_macros::{
-        setup_word_motion_tests, word_motion_tests,
-    };
+    use super::super::WordMotion;
+    use jieba_rs::Jieba;
+    use jieba_vim_rs_test::cursor_marker::CursorMarker;
+    #[cfg(feature = "verifiable_case")]
+    use jieba_vim_rs_test_verifiable_case::verified_case;
+    #[cfg(not(feature = "verifiable_case"))]
+    use jieba_vim_rs_test_verifiable_case::verified_case_dry_run as verified_case;
+    use once_cell::sync::OnceCell;
 
-    setup_word_motion_tests!();
 
     word_motion_tests! { (nmap_w)
+    static WORD_MOTION: OnceCell<WordMotion<Jieba>> = OnceCell::new();
+
+    #[ctor::ctor]
+    fn init() {
+        WORD_MOTION.get_or_init(|| WordMotion::new(Jieba::new()));
+    }
+
+    macro_rules! word_motion_tests {
+        (
+            $test_name:ident (word):
+            $(
+                ($index:literal) [$($buffer_item:literal),*], $count:literal
+            );* $(;)?
+        ) => {
+            $(
+                paste::paste! {
+                    #[test]
+                    fn [<$test_name _word_ $index>]() {
+                        let motion = WORD_MOTION.get().unwrap();
+                        let cm = CursorMarker;
+                        let buffer = verified_case!(
+                            motion_nmap_w,
+                            [<$test_name _word_ $index>],
+                            [$($buffer_item),*],
+                            "n", "", $count, "w");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.nmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            Ok((ac.lnum, ac.col))
+                        );
+                    }
+                }
+            )*
+        };
+        (
+            $test_name:ident (WORD):
+            $(
+                ($index:literal) [$($buffer_item:literal),*], $count:literal
+            );* $(;)?
+        ) => {
+            $(
+                paste::paste! {
+                    #[test]
+                    fn [<$test_name _WORD_ $index>]() {
+                        let motion = WORD_MOTION.get().unwrap();
+                        let cm = CursorMarker;
+                        let buffer = verified_case!(
+                            motion_nmap_w,
+                            [<$test_name _WORD_ $index>],
+                            [$($buffer_item),*],
+                            "n", "", $count, "w");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.nmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            Ok((ac.lnum, ac.col))
+                        );
+                    }
+                }
+            )*
+        };
+    }
         (
             test_empty:
             ["{}"], 1, true;

@@ -43,49 +43,6 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 }
 
 #[cfg(test)]
-pub mod test_macros {
-    #[macro_export]
-    macro_rules! setup_word_motion_tests {
-        () => {
-            static WORD_MOTION: once_cell::sync::OnceCell<
-                crate::motion::WordMotion<jieba_rs::Jieba>,
-            > = once_cell::sync::OnceCell::new();
-
-            #[ctor::ctor]
-            fn init() {
-                WORD_MOTION.get_or_init(|| {
-                    crate::motion::WordMotion::new(jieba_rs::Jieba::new())
-                });
-            }
-        };
-    }
-
-    #[macro_export]
-    macro_rules! word_motion_tests {
-        ( ($motion_fun:ident)  $((
-                $test_name:ident $(< $timeout:literal)?:
-                $( [$($buffer_item:literal),*], $count:expr, $word:literal );* $(;)?
-            )),* $(,)? ) => {
-            $(
-                #[test]
-                $( #[ntest_timeout::timeout($timeout)] )?
-                fn $test_name() {
-                    let motion = WORD_MOTION.get().unwrap();
-                    let cm = crate::motion::test_utils::CursorMarker::default();
-                    $(
-                        let mut buffer: Vec<String> = vec![$($buffer_item.into()),*];
-                        let (before_cursor, after_cursor) = cm.strip_markers(&mut buffer);
-                        assert_eq!(motion.$motion_fun(&buffer, before_cursor, $count, $word), Ok(after_cursor));
-                    )*
-                }
-            )*
-        };
-    }
-
-    pub use {setup_word_motion_tests, word_motion_tests};
-}
-
-#[cfg(test)]
 impl BufferLike for Vec<&'static str> {
     type Error = ();
 
