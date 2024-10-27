@@ -65,118 +65,157 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::test_macros::{
-        setup_word_motion_tests, word_motion_tests,
-    };
+    use super::super::WordMotion;
+    use jieba_rs::Jieba;
+    use jieba_vim_rs_test::cursor_marker::CursorMarker;
+    #[cfg(feature = "verifiable_case")]
+    use jieba_vim_rs_test_verifiable_case::verified_case;
+    #[cfg(not(feature = "verifiable_case"))]
+    use jieba_vim_rs_test_verifiable_case::verified_case_dry_run as verified_case;
+    use once_cell::sync::OnceCell;
 
-    setup_word_motion_tests!();
+    static WORD_MOTION: OnceCell<WordMotion<Jieba>> = OnceCell::new();
 
-    word_motion_tests! { (nmap_e)
-        (
-            test_empty:
-            ["{}"], 1, true;
-            ["{}"], 1, false;
-        ),
-        (
-            test_one_word:
-            ["aaa{}a"], 1, true;
-            ["aaa{}a"], 1, false;
-            ["a{aa}a"], 1, true;
-            ["a{aa}a"], 1, false;
-            ["a{aa}a"], 2, true;
-            ["a{aa}a"], 2, false;
-            ["{你}好"], 1, true;
-            ["{你}好"], 1, false;
-            ["{你}好"], 1, true;
-            ["{你}好"], 1, false;
-        ),
-        (
-            test_one_word_space:
-            ["a{aa}a    "], 1, true;
-            ["a{aa}a    "], 1, false;
-            ["aaa{a   } "], 1, true;
-            ["aaa{a   } "], 1, false;
-            ["aaaa {  } "], 1, true;
-            ["aaaa {  } "], 1, false;
-            ["{你}好   "], 1, true;
-            ["{你}好   "], 1, false;
-            ["你好 { } "], 1, true;
-            ["你好 { } "], 1, false;
-        ),
-        (
-            test_two_words:
-            ["a{aa}a  aaa"], 1, true;
-            ["a{aa}a  aaa"], 1, false;
-            ["a{aaa  aa}a"], 2, true;
-            ["a{aaa  aa}a"], 2, false;
-            ["{你}好世界"], 1, true;
-            ["{你}好世界"], 1, false;
-            ["{你好世}界"], 2, true;
-            ["{你好世}界"], 2, false;
-            ["{你}好  世界"], 1, true;
-            ["{你}好  世界"], 1, false;
-            ["{你好  世}界"], 2, true;
-            ["{你好  世}界"], 2, false;
-        ),
-        (
-            test_one_word_new_line:
-            ["a{aa}a", ""], 1, true;
-            ["a{aa}a", ""], 1, false;
-            ["{你}好", ""], 1, true;
-            ["你{好", "}"], 1, true;
-            ["{你}好", ""], 1, false;
-            ["你{好", "}"], 1, false;
-        ),
-        (
-            test_one_word_space_new_line:
-            ["a{aa}a    ", ""], 1, true;
-            ["a{aa}a    ", ""], 1, false;
-            ["aaaa{    ", "}"], 1, true;
-            ["aaaa {   ", "}"], 1, true;
-            ["{你}好    ", ""], 1, true;
-            ["{你}好    ", ""], 1, false;
-        ),
-        (
-            test_one_word_new_line_space:
-            ["aaa{a", "   } "], 1, true;
-            ["aaa{a", "   } "], 1, false;
-            ["aaa{a", "  ", "   } "], 1, true;
-            ["aaa{a", "  ", "   } "], 1, false;
-            ["aaaa", "{  ", "   } "], 1, true;
-            ["aaa{a", "", "   } "], 1, true;
-            ["aaa{a", "", "   } "], 1, false;
-            ["你{好", "  ", "   } "], 1, true;
-            ["你{好", "", "   } "], 1, true;
-        ),
-        (
-            test_one_word_new_line_space_new_line:
-            ["aaa{a", " ", "}"], 1, true;
-            ["aaa{a", " ", "}"], 1, false;
-            ["aaa{a", " ", " ", "}"], 1, true;
-            ["aaa{a", "", " ", "}"], 1, true;
-            ["aaa{a", " ", "", "}"], 1, true;
-            ["aaa{a", "", "", "}"], 1, true;
-            ["aaa{a", " ", " ", "}"], 1, false;
-            ["你{好", " ", " ", "}"], 1, true;
-            ["你{好", " ", "", "}"], 1, true;
-            ["你{好", " ", " ", "}"], 1, false;
-        ),
-        (
-            test_word_new_line_word:
-            ["a{aa}a", "", " ", "", "aaa"], 1, true;
-            ["aaa{a", "", " ", "", "aa}a"], 1, true;
-            ["aaa{a", "  ", "", " ", "aaa}a"], 1, true;
-            ["aaa{a", "", "aa}a", "", "aaaa"], 1, true;
-            ["aaa{a", "", "aaa", "", "aaa}a"], 2, true;
-        ),
-        (
-            test_large_unnecessary_count < 100:
-            ["{}"], 10293949403, true;
-            ["{}"], 10293949403, false;
-            ["a{aa aaa}a"], 10293949403, true;
-            ["a{aa aaa}a"], 10293949403, false;
-            ["aaa {aaa}a"], 10293949403, true;
-            ["aaa {aaa}a"], 10293949403, false;
-        ),
+    #[ctor::ctor]
+    fn init() {
+        WORD_MOTION.get_or_init(|| WordMotion::new(Jieba::new()));
     }
+
+    macro_rules! word_motion_tests {
+        (
+            $test_name:ident (word):
+            $(
+                ($index:literal) [$($buffer_item:literal),*], $count:literal
+            );* $(;)?
+        ) => {
+            $(
+                paste::paste! {
+                    #[test]
+                    #[ntest_timeout::timeout(50)]
+                    fn [<$test_name _word_ $index>]() {
+                        let motion = WORD_MOTION.get().unwrap();
+                        let cm = CursorMarker;
+                        let buffer = verified_case!(
+                            motion_nmap_e,
+                            [<$test_name _word_ $index>],
+                            [$($buffer_item),*],
+                            "n", "", $count, "e");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.nmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            Ok((ac.lnum, ac.col))
+                        );
+                    }
+                }
+            )*
+        };
+        (
+            $test_name:ident (WORD):
+            $(
+                ($index:literal) [$($buffer_item:literal),*], $count:literal
+            );* $(;)?
+        ) => {
+            $(
+                paste::paste! {
+                    #[test]
+                    #[ntest_timeout::timeout(50)]
+                    fn [<$test_name _WORD_ $index>]() {
+                        let motion = WORD_MOTION.get().unwrap();
+                        let cm = CursorMarker;
+                        let buffer = verified_case!(
+                            motion_nmap_e,
+                            [<$test_name _WORD_ $index>],
+                            [$($buffer_item),*],
+                            "n", "", $count, "E");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.nmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            Ok((ac.lnum, ac.col))
+                        );
+                    }
+                }
+            )*
+        };
+    }
+
+    word_motion_tests!(
+        test_empty (word):
+        (1) ["{}"], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word (word):
+        (1) ["aaa{}a"], 1;
+        (2) ["a{aa}a"], 1;
+        (3) ["a{aa}a"], 2;
+    );
+
+    word_motion_tests!(
+        test_one_word_space (word):
+        (1) ["a{aa}a    "], 1;
+        (2) ["aaa{a   } "], 1;
+        (3) ["aaaa {  } "], 1;
+    );
+
+    word_motion_tests!(
+        test_two_words (word):
+        (1) ["a{aa}a  aaa"], 1;
+        (2) ["a{aaa  aa}a"], 2;
+        (3) ["aaa{a aa}a"], 1;
+        (4) ["aaa{a aa}a"], 2;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline (word):
+        (1) ["a{aa}a", ""], 1;
+        (2) ["a{aaa", "}"], 2;
+        (3) ["aaa{a", "}"], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_space_newline (word):
+        (1) ["a{aa}a    ", ""], 1;
+        (2) ["aaa{a     ", "}"], 1;
+        (3) ["aaaa{    ", "}"], 1;
+        (4) ["aaaa {   ", "}"], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline_space (word):
+        (1) ["aaa{a", "   } "], 1;
+        (2) ["aaa{a", "  ", "   } "], 1;
+        (3) ["aaaa", "{  ", "   } "], 1;
+        (4) ["aaa{a", "", "   } "], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline_space_newline (word):
+        (1) ["aaa{a", " ", "}"], 1;
+        (2) ["aaa{a", " ", " ", "}"], 1;
+        (3) ["aaa{a", "", " ", "}"], 1;
+        (4) ["aaa{a", " ", "", "}"], 1;
+        (5) ["aaa{a", "", "", "}"], 1
+    );
+
+    word_motion_tests!(
+        test_word_newline_word (word):
+        (1) ["a{aa}a", "", " ", "", "aaa"], 1;
+        (2) ["aaa{a", "", " ", "", "aa}a"], 1;
+        (3) ["aaa{a", "  ", "", " ", "aaa}a"], 1;
+        (4) ["aaa{a", "", "aa}a", "", "aaaa"], 1;
+        (5) ["aaa{a", "", "aaa", "", "aaa}a"], 2;
+    );
+
+    word_motion_tests!(
+        test_large_unnecessary_count (word):
+        (1) ["{}"], 10293949403;
+        (2) ["a{aa aaa}a"], 10293949403;
+        (3) ["aaa {aaa}a"], 10293949403;
+    );
 }
