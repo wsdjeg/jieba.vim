@@ -80,8 +80,6 @@ mod tests {
     use jieba_vim_rs_test_verifiable_case::verified_case_dry_run as verified_case;
     use once_cell::sync::OnceCell;
 
-
-    word_motion_tests! { (nmap_w)
     static WORD_MOTION: OnceCell<WordMotion<Jieba>> = OnceCell::new();
 
     #[ctor::ctor]
@@ -151,107 +149,68 @@ mod tests {
             )*
         };
     }
-        (
-            test_empty:
-            ["{}"], 1, true;
-            ["{}"], 1, false;
-        ),
-        (
-            test_one_word:
-            ["aaa{}a"], 1, true;
-            ["aaa{}a"], 1, false;
-            ["a{aa}a"], 1, true;
-            ["a{aa}a"], 1, false;
-            ["a{aa}a"], 2, true;
-            ["a{aa}a"], 2, false;
-            ["{你}好"], 1, true;
-            ["{你}好"], 1, false;
-            ["{你}好"], 1, true;
-            ["{你}好"], 1, false;
-        ),
-        (
-            test_one_word_space:
-            ["a{aaa   } "], 1, true;
-            ["a{aaa   } "], 1, false;
-            ["aaa{a   } "], 1, true;
-            ["aaa{a   } "], 1, false;
-            ["aaaa {  } "], 1, true;
-            ["aaaa {  } "], 1, false;
-            ["{你好  } "], 1, true;
-            ["{你好  } "], 1, false;
-            ["你好 { } "], 1, true;
-            ["你好 { } "], 1, false;
-        ),
-        (
-            test_two_words:
-            ["a{aaa  }aaa"], 1, true;
-            ["a{aaa  }aaa"], 1, false;
-            ["a{aaa  aa}a"], 2, true;
-            ["a{aaa  aa}a"], 2, false;
-            ["{你好}世界"], 1, true;
-            ["{你好}世界"], 1, false;
-            ["{你好世}界"], 2, true;
-            ["{你好世}界"], 2, false;
-            ["{你好  }世界"], 1, true;
-            ["{你好  }世界"], 1, false;
-            ["{你好  世}界"], 2, true;
-            ["{你好  世}界"], 2, false;
-        ),
-        (
-            test_one_word_new_line:
-            ["a{aaa", "}"], 1, true;
-            ["a{aaa", "}"], 1, false;
-            ["{你好", "}"], 1, true;
-            ["你{好", "}"], 1, true;
-            ["{你好", "}"], 1, false;
-            ["你{好", "}"], 1, false;
-        ),
-        (
-            test_one_word_space_new_line:
-            ["a{aaa    ", "}"], 1, true;
-            ["a{aaa    ", "}"], 1, false;
-            ["aaaa{    ", "}"], 1, true;
-            ["aaaa {   ", "}"], 1, true;
-            ["{你好    ", "}"], 1, true;
-            ["{你好    ", "}"], 1, false;
-        ),
-        (
-            test_one_word_new_line_space:
-            ["a{aaa", "   } "], 1, true;
-            ["a{aaa", "   } "], 1, false;
-            ["a{aaa", "  ", "   } "], 1, true;
-            ["a{aaa", "  ", "   } "], 1, false;
-            ["aaaa", "{  ", "   } "], 1, true;
-            ["a{aa", "}", "   "], 1, true;
-            ["a{aaa", "}", "   "], 1, false;
-            ["{你好", "  ", "   } "], 1, true;
-            ["你{好", "  ", "   } "], 1, true;
-        ),
-        (
-            test_one_word_new_line_space_new_line:
-            ["a{aaa", " ", "}"], 1, true;
-            ["a{aaa", " ", "}"], 1, false;
-            ["a{aaa", " ", " ", "}", "  "], 1, true;
-            ["a{aaa", " ", " ", "}", "  "], 1, false;
-            ["{你好", " ", " ", "}", "  "], 1, true;
-            ["{你好", " ", " ", "}", "  "], 1, false;
-        ),
-        (
-            test_large_unnecessary_count < 100:
-            ["{}"], 10293949403, true;
-            ["{}"], 10293949403, false;
-            ["a{aa aaa}a"], 10293949403, true;
-            ["a{aa aaa}a"], 10293949403, false;
-            ["aaa {aaa}a"], 10293949403, true;
-            ["aaa {aaa}a"], 10293949403, false;
-        ),
-        (
-            test_jieba_efficiency1 < 50:
-            ["{你好}，世界"], 1, true;
-        ),
-        (
-            test_jieba_efficiency2 < 50:
-            ["{你好，}世界"], 1, false;
-        ),
-    }
+
+    word_motion_tests!(
+        test_empty (word):
+        (1) ["{}"], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word (word):
+        (1) ["aaa{}a"], 1;
+        (2) ["a{aa}a"], 1;
+        (3) ["a{aa}a"], 2;
+    );
+
+    word_motion_tests!(
+        test_one_word_space (word):
+        (1) ["a{aaa   } "], 1;
+        (2) ["aaa{a   } "], 1;
+        (3) ["aaaa {  } "], 1;
+    );
+
+    word_motion_tests!(
+        test_two_words (word):
+        (1) ["a{aaa  }aaa"], 1;
+        (2) ["a{aaa  aa}a"], 2;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline (word):
+        (1) ["a{aaa", "}"], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_space_newline (word):
+        (1) ["a{aaa    ", "}"], 1;
+        (2) ["aaaa{    ", "}"], 1;
+        (3) ["aaaa {   ", "}"], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline_space (word):
+        (1) ["a{aaa", "   } "], 1;
+        (2) ["a{aaa", "  ", "   } "], 1;
+        (3) ["aaaa", "{  ", "   } "], 1;
+        (4) ["a{aa", "}", "   "], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline_space_newline (word):
+        (1) ["a{aaa", " ", "}"], 1;
+        (2) ["a{aaa", " ", " ", "}", "  "], 1;
+    );
+
+    word_motion_tests!(
+        test_one_word_newline_space_word (word):
+        (1) ["a{aaa", " ", " ", "}aaa"], 1;
+        (2) ["a{aaa", " ", " ", "   }aaa"], 1;
+    );
+
+    word_motion_tests!(
+        test_large_unnecessary_count (word):
+        (1) ["{}"], 10293949403;
+        (2) ["a{aa aaa}a"], 10293949403;
+        (3) ["aaa {aaa}a"], 10293949403;
+    );
 }
