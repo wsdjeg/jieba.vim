@@ -73,6 +73,7 @@ struct VerifiedCaseInput {
     before_cursor_position: CursorPosition,
     after_cursor_position: CursorPosition,
     buffers: Vec<String>,
+    stripped_beffers: Vec<String>,
     mode: Mode,
     operator: LitStr,
     motion: Motion,
@@ -174,6 +175,7 @@ impl Parse for VerifiedCaseInput {
             before_cursor_position: parsed_buffers.before_cursor_position,
             after_cursor_position: parsed_buffers.after_cursor_position,
             buffers,
+            stripped_beffers: parsed_buffers.striped_lines,
             mode,
             operator,
             motion,
@@ -199,7 +201,7 @@ fn write_vader_given_block<W: Write>(
 
 impl VerifiedCaseInput {
     fn write_vader<W: Write>(&self, mut tofile: W) -> io::Result<()> {
-        let buffer_lines = &self.buffers;
+        let buffer_lines = &self.stripped_beffers;
         let lnum_before = self.before_cursor_position.lnum;
         let col_before = self.before_cursor_position.col + 1;
         let lnum_after = self.after_cursor_position.lnum;
