@@ -190,7 +190,7 @@ fn write_vader_given_block<W: Write>(
     writeln!(tofile, "Given:")?;
     for line in buffer_lines.iter() {
         if line.is_empty() {
-            writeln!(tofile, "")?;
+            writeln!(tofile, "  ")?;
         } else {
             writeln!(tofile, "  {}", line)?;
         }
