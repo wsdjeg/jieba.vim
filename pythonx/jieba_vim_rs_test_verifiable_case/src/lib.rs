@@ -394,13 +394,16 @@ fn verify_case(case_info: &VerifiedCaseInput) -> Result<bool, String> {
     let vader_file_name = format!("{}.vader", case_name);
     let vader_file_path: PathBuf =
         [&basedir, Path::new(&vader_file_name)].iter().collect();
-    let mut vader_file =
-        BufWriter::new(File::create(vader_file_path.clone()).map_err(
-            |_| format!("Failed to create vader file: {:?}", vader_file_path),
-        )?);
-    case_info.write_vader(&mut vader_file).map_err(|_| {
-        format!("Failed to write vader file: {:?}", vader_file_path)
-    })?;
+    {
+        let mut vader_file = BufWriter::new(
+            File::create(vader_file_path.clone()).map_err(|_| {
+                format!("Failed to create vader file: {:?}", vader_file_path)
+            })?,
+        );
+        case_info.write_vader(&mut vader_file).map_err(|_| {
+            format!("Failed to write vader file: {:?}", vader_file_path)
+        })?;
+    } // `vader_file` should be closed here.
 
     // Run vader test with vim, and see if the case can be verified.
     let assert = Command::new("vim")
