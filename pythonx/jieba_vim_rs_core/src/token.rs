@@ -851,6 +851,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     fn test_parse_empty() {
         let tokens = parse_str_test("", true);
         assert!(tokens.is_empty());
@@ -860,6 +861,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     fn test_parse_en_only_word() {
         let tokens = parse_str_test("hello, world", true);
         assert_eq!(
@@ -874,6 +876,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     #[allow(non_snake_case)]
     fn test_parse_en_only_WORD() {
         let tokens = parse_str_test("hello, world", false);
@@ -888,6 +891,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     fn test_parse_hanzi_and_en_1_word() {
         let tokens = parse_str_test("B超foo_bar", true);
         assert_eq!(
@@ -900,6 +904,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     #[allow(non_snake_case)]
     fn test_parse_hanzi_and_en_1_WORD() {
         let tokens = parse_str_test("B超foo_bar", false);
@@ -913,6 +918,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     fn test_parse_hanzi_and_en_2_word() {
         let tokens = parse_str_test("B超，foo。。。", true);
         assert_eq!(
@@ -927,6 +933,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     #[allow(non_snake_case)]
     fn test_parse_hanzi_and_en_2_WORD() {
         let tokens = parse_str_test("B超，foo。。。", false);
@@ -940,6 +947,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     fn test_parse_hanzi_1_word() {
         let tokens = parse_str_test("（你好——世界）。", true);
         assert_eq!(
@@ -955,6 +963,7 @@ mod tests {
     }
 
     #[test]
+    #[ntest_timeout::timeout(10)]
     #[allow(non_snake_case)]
     fn test_parse_hanzi_1_WORD() {
         let tokens = parse_str_test("（你好——世界）。", false);
