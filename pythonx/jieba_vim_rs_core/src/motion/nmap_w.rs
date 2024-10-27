@@ -99,6 +99,7 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
+                    #[ntest_timeout::timeout(50)]
                     fn [<$test_name _word_ $index>]() {
                         let motion = WORD_MOTION.get().unwrap();
                         let cm = CursorMarker;
@@ -128,6 +129,7 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
+                    #[ntest_timeout::timeout(50)]
                     fn [<$test_name _WORD_ $index>]() {
                         let motion = WORD_MOTION.get().unwrap();
                         let cm = CursorMarker;
