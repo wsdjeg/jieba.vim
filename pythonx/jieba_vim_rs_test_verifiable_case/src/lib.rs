@@ -266,7 +266,7 @@ Then:
                     r#"
 Before:
   function! VeCursor(lnum, col)
-    setlocal virtualedit=onemore
+    set virtualedit=onemore
     call cursor(a:lnum, a:col)
   endfunction
 
@@ -287,7 +287,7 @@ Execute:
   silent! normal! u
   call cursor({lnum_before}, {col_before})
   execute "normal! {operator}:call VeCursor({lnum_after}, {col_after})\<cr>"
-  setlocal virtualedit=
+  set virtualedit=
   let g:rust_lnum = line(".")
   let g:rust_col = col(".")
   1,$y b
