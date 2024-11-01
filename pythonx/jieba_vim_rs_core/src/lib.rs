@@ -1,3 +1,3 @@
-mod motion;
-mod token;
+pub mod motion;
+pub mod token;
 mod utils;

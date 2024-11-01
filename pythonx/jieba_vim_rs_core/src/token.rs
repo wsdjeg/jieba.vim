@@ -164,7 +164,7 @@ fn categorize_char(c: char) -> CharType {
 
 /// The column location of a char or a token in a line.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct Col {
+pub(crate) struct Col {
     /// The byte offset of the first char in the token.
     pub start_byte_index: usize,
     /// The byte offset of the last char in the token.
@@ -545,14 +545,14 @@ fn cut_hanzi_rule<C: JiebaPlaceholder>(
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct Token {
+pub(crate) struct Token {
     pub col: Col,
     pub ty: TokenType,
 }
 
 /// Token types.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum TokenType {
+pub(crate) enum TokenType {
     /// Either a word or a WORD token, depending on the context.
     ///
     /// A word, by definition of Vim, is either a sequence of word characters
@@ -645,7 +645,7 @@ fn parse_chars_into_WORDs<C: JiebaPlaceholder>(
 
 /// Parse `line` into tokens. If `into_word` is `true`, the non-space tokens
 /// will be interpretable as `word`s; otherwise, they will be `WORD`s.
-pub fn parse_str<S: AsRef<str>, C: JiebaPlaceholder>(
+pub(crate) fn parse_str<S: AsRef<str>, C: JiebaPlaceholder>(
     line: S,
     jieba: &C,
     into_word: bool,
@@ -659,7 +659,7 @@ pub fn parse_str<S: AsRef<str>, C: JiebaPlaceholder>(
 }
 
 /// A token or an empty line.
-pub trait TokenLike {
+pub(crate) trait TokenLike {
     /// The byte position of the first character in the token.
     fn first_char(&self) -> usize;
     /// The byte position of the last character in the token.
@@ -698,7 +698,7 @@ impl TokenLike for Option<Token> {
 }
 
 #[cfg(test)]
-pub mod test_macros {
+pub(crate) mod test_macros {
     #[macro_export]
     macro_rules! token {
         ($i:literal, $j:literal, $k:literal, $t:ident) => {
