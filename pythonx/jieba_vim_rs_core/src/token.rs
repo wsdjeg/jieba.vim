@@ -443,7 +443,6 @@ fn group_chars_rule(
     }
 }
 
-// TODO buggy implementation
 impl CharGroup {
     /// Split `self` into subgroups, whose types will be recategorized. Panics
     /// if `self.chars.len() != sizes.sum()`.
