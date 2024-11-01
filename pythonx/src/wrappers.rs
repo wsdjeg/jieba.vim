@@ -45,6 +45,7 @@ impl WordMotionWrapper {
     /// Load jieba with the default dictionary, or with custom dictionary given
     /// dictionary path.
     #[new]
+    #[pyo3(signature = (path=None))]
     pub fn from_dict(path: Option<&str>) -> PyResult<Self> {
         let jieba = match path {
             None => Jieba::new(),
