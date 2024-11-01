@@ -28,6 +28,4 @@ jieba_vim_rs_core = { path = "jieba_vim_rs_core" }
 
 [build-dependencies]
 pyo3-build-config = "0.22"
-symlink = "0.1"
-curl = "0.4"
-const_format = "0.2"
+manual-build-pyo3 = { git = "https://github.com/kkew3/manual-build-pyo3.git", tag = "0.1.0", version = "0.1.0" }
