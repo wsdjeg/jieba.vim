@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 #[pymodule]
 fn jieba_vim_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<wrappers::WordMotionWrapper>()?;
+    m.add_class::<wrappers::LazyWordMotionWrapper>()?;
 
     Ok(())
 }

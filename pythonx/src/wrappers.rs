@@ -3,6 +3,7 @@ use jieba_vim_rs_core::motion::{BufferLike, WordMotion};
 use jieba_vim_rs_core::token::JiebaPlaceholder;
 use pyo3::exceptions::{PyIOError, PyValueError};
 use pyo3::prelude::*;
+use std::cell::RefCell;
 use std::fs::File;
 use std::io::BufReader;
 
@@ -34,6 +35,26 @@ impl JiebaPlaceholder for JiebaWrapper {
     }
 }
 
+struct LazyJiebaWrapper {
+    path: Option<String>,
+    jieba: RefCell<Option<Jieba>>,
+}
+
+impl JiebaPlaceholder for LazyJiebaWrapper {
+    fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
+        self.jieba
+            .borrow_mut()
+            .get_or_insert_with(|| match &self.path {
+                None => Jieba::new(),
+                Some(path) => {
+                    let mut reader = BufReader::new(File::open(path).unwrap());
+                    Jieba::with_dict(&mut reader).unwrap()
+                }
+            })
+            .cut(sentence, true)
+    }
+}
+
 #[pyclass]
 #[pyo3(name = "WordMotion")]
 pub struct WordMotionWrapper {
@@ -61,6 +82,47 @@ impl WordMotionWrapper {
         Ok(Self {
             wm: WordMotion::new(JiebaWrapper(jieba)),
         })
+    }
+
+    pub fn nmap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .nmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
+    }
+
+    #[allow(non_snake_case)]
+    pub fn nmap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .nmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
+    }
+}
+
+#[pyclass]
+#[pyo3(name = "LazyWordMotion")]
+pub struct LazyWordMotionWrapper {
+    wm: WordMotion<LazyJiebaWrapper>,
+}
+
+#[pymethods]
+impl LazyWordMotionWrapper {
+    #[new]
+    #[pyo3(signature = (path=None))]
+    pub fn from_dict(path: Option<String>) -> Self {
+        Self {
+            wm: WordMotion::new(LazyJiebaWrapper {
+                path,
+                jieba: RefCell::new(None),
+            }),
+        }
     }
 
     pub fn nmap_w(
