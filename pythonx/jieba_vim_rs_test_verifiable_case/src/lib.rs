@@ -284,16 +284,6 @@ Then:
             }
             Mode::VisualChar | Mode::VisualLine | Mode::VisualBlock => {
                 write_vader_given_block(&mut tofile, &buffer_lines)?;
-                let reg = match motion {
-                    Motion::SmallW(_)
-                    | Motion::LargeW(_)
-                    | Motion::SmallE(_)
-                    | Motion::LargeE(_) => "'>",
-                    Motion::SmallB(_)
-                    | Motion::LargeB(_)
-                    | Motion::SmallGe(_)
-                    | Motion::LargeGe(_) => "'<",
-                };
                 let v = match self.mode {
                     Mode::VisualChar => "v",
                     Mode::VisualLine => "V",
@@ -305,9 +295,9 @@ Then:
                     r#"
 Execute:
   call cursor({lnum_before}, {col_before})
-  execute "normal! {v}{motion}" | execute "normal! \<Esc>"
-  let g:groundtruth_lnum = line("{reg}")
-  let g:groundtruth_col = col("{reg}")
+  execute "normal! {v}{motion}" | execute "normal! mx\<Esc>"
+  let g:groundtruth_lnum = line("'x")
+  let g:groundtruth_col = col("'x")
 
 Then:
   AssertEqual g:groundtruth_lnum, {lnum_after}
