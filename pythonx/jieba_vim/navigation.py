@@ -21,9 +21,7 @@ These names are dynamically defined in this module::
     - xmap_W
     - teardown_xmap_W
     - omap_w
-    - teardown_omap_w
     - omap_W
-    - teardown_omap_W
 """
 import vim
 
@@ -66,6 +64,11 @@ def _vim_wrapper_factory_x(motion_name):
 
     def _motion_wrapper(count):
         method = getattr(word_motion, fun_name)
+        # I tried `let g:jieba_vim_previous_virtualedit = &virtualedit` but got
+        # error "Illegal variable name: s:jieba_vim_previous_virtualedit". Will
+        # the use of global variable lead to race condition when there are
+        # multiple instances of Vim open?
+        vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
         vim.command('set virtualedit=onemore')
         vim.current.window.cursor = method(vim.current.buffer,
                                            vim.current.window.cursor, count)
@@ -74,7 +77,8 @@ def _vim_wrapper_factory_x(motion_name):
         # The `m>gv` trick reference:
         # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L32
         vim.command('normal! m>')
-        vim.command('set virtualedit=')
+        vim.command(
+            'execute "set virtualedit=" . g:jieba_vim_previous_virtualedit')
         vim.command('normal! gv')
 
     return {
@@ -88,18 +92,27 @@ def _vim_wrapper_factory_o(motion_name):
 
     def _motion_wrapper(operator, count):
         method = getattr(word_motion, fun_name)
+        # virtualedit trick reference:
+        # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L242-L256
+        #
+        # I tried `let g:jieba_vim_previous_virtualedit = &virtualedit` but got
+        # error "Illegal variable name: s:jieba_vim_previous_virtualedit". Will
+        # the use of global variable lead to race condition when there are
+        # multiple instances of Vim open?
+        vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
         vim.command('set virtualedit=onemore')
         vim.current.window.cursor = method(vim.current.buffer,
                                            vim.current.window.cursor, operator,
                                            count)
+        vim.command(
+            'augroup jieba_vim_reset_virtualedit '
+            '| autocmd! '
+            '| autocmd TextChanged,CursorMoved <buffer> '
+            'execute "set virtualedit=" . g:jieba_vim_previous_virtualedit '
+            '| autocmd! jieba_vim_reset_virtualedit '
+            '| augroup END')
 
-    def _teardown_wrapper():
-        vim.command('set virtualedit=')
-
-    return {
-        fun_name: _motion_wrapper,
-        'teardown_' + fun_name: _teardown_wrapper,
-    }
+    return {fun_name: _motion_wrapper}
 
 
 def _define_functions():

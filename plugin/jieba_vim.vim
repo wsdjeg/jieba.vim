@@ -40,6 +40,6 @@ nnoremap <silent> <Plug>(Jieba_preview_cancel) :<C-u>py3 jieba_vim.preview_cance
 
 for ky in s:motions
     execute 'nnoremap <expr> <silent> <Plug>(Jieba_' . ky . ') ":<C-u>py3 jieba_vim.navigation.nmap_' . ky . '(" . v:count1 . ")<CR>"'
-    execute 'onoremap <expr> <silent> <Plug>(Jieba_' . ky . ') ":<C-u>py3 jieba_vim.navigation.omap_' . ky . '(\"" . v:operator . "\", " . v:count1 . ")<CR>:py3 jieba_vim.navigation.teardown_omap_' . ky . '()<CR>"'
+    execute 'onoremap <expr> <silent> <Plug>(Jieba_' . ky . ') ":<C-u>py3 jieba_vim.navigation.omap_' . ky . '(\"" . v:operator . "\", " . v:count1 . ")<CR>"'
     execute 'xnoremap <expr> <silent> <Plug>(Jieba_' . ky . ') "<Esc>:<C-u>py3 jieba_vim.navigation.xmap_' . ky . '(" . v:count1 . ")<CR>:py3 jieba_vim.navigation.teardown_xmap_' . ky . '()<CR>"'
 endfor
