@@ -172,7 +172,7 @@ mod tests {
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         assert_eq!(
-                            motion.omap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            motion.omap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false),
                             Ok((ac.lnum, ac.col))
                         );
                     }
