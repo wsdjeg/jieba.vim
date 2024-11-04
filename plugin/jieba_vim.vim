@@ -19,6 +19,7 @@ let g:loaded_jieba_vim = 1
 
 let g:jieba_vim_lazy = get(g:, 'jieba_vim_lazy', 1)
 let g:jieba_vim_user_dict = get(g:, 'jieba_vim_user_dict', '')
+let g:jieba_vim_keymap = get(g:, 'jieba_vim_keymap', 0)
 
 if !has('python3')
     echoerr "python3 is required by jieba.vim"
@@ -43,3 +44,12 @@ for ky in s:motions
     execute 'onoremap <expr> <silent> <Plug>(Jieba_' . ky . ') ":<C-u>py3 jieba_vim.navigation.omap_' . ky . '(\"" . v:operator . "\", " . v:count1 . ")<CR>"'
     execute 'xnoremap <expr> <silent> <Plug>(Jieba_' . ky . ') "<Esc>:<C-u>py3 jieba_vim.navigation.xmap_' . ky . '(" . v:count1 . ")<CR>:py3 jieba_vim.navigation.teardown_xmap_' . ky . '()<CR>"'
 endfor
+
+let s:modes = ["n", "x", "o"]
+if g:jieba_vim_keymap
+    for ky in s:motions
+        for md in s:modes
+            execute md . "map " . ky . " <Plug>(Jieba_" . ky . ")"
+        endfor
+    endfor
+endif
