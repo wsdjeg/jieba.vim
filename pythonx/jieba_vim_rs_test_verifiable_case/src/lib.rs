@@ -5,6 +5,7 @@ use once_cell::sync::Lazy;
 use proc_macro::TokenStream;
 use quote::quote;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
@@ -13,6 +14,7 @@ use std::{env, fs, io};
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Ident, LitInt, LitStr, Token};
 
+#[derive(Deserialize, Serialize, PartialEq, Eq, Clone)]
 enum Mode {
     Normal,
     VisualChar,
@@ -33,6 +35,7 @@ impl AsRef<str> for Mode {
     }
 }
 
+#[derive(Deserialize, Serialize, PartialEq, Eq, Clone)]
 enum Motion {
     SmallW(usize),
     LargeW(usize),
@@ -180,6 +183,58 @@ impl Parse for VerifiedCaseInput {
             operator,
             motion,
         })
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+struct VerifiedCaseInputSer {
+    group_id: String,
+    test_name: String,
+    before_cursor_position: (usize, usize),
+    after_cursor_position: (usize, usize),
+    buffers: Vec<String>,
+    stripped_buffers: Vec<String>,
+    mode: Mode,
+    operator: String,
+    motion: Motion,
+    verified: Option<bool>,
+}
+
+impl PartialEq for VerifiedCaseInputSer {
+    fn eq(&self, other: &Self) -> bool {
+        // `self` and `other` are equal if all but `verified` are equal.
+        self.group_id == other.group_id
+            && self.test_name == other.test_name
+            && self.before_cursor_position == other.before_cursor_position
+            && self.after_cursor_position == other.after_cursor_position
+            && self.buffers == other.buffers
+            && self.stripped_buffers == other.stripped_buffers
+            && self.mode == other.mode
+            && self.operator == other.operator
+            && self.motion == other.motion
+    }
+}
+
+impl VerifiedCaseInput {
+    fn clone_as_serializable(&self) -> VerifiedCaseInputSer {
+        VerifiedCaseInputSer {
+            group_id: self.group_id.to_string(),
+            test_name: self.test_name.to_string(),
+            before_cursor_position: (
+                self.before_cursor_position.lnum,
+                self.before_cursor_position.col,
+            ),
+            after_cursor_position: (
+                self.after_cursor_position.lnum,
+                self.after_cursor_position.col,
+            ),
+            buffers: self.buffers.clone(),
+            stripped_buffers: self.stripped_buffers.clone(),
+            mode: self.mode.clone(),
+            operator: self.operator.value(),
+            motion: self.motion.clone(),
+            verified: None,
+        }
     }
 }
 
@@ -378,6 +433,28 @@ fn verify_case(case_info: &VerifiedCaseInput) -> Result<bool, String> {
     .collect();
     fs::create_dir(&basedir).ok();
 
+    // Form the unique case identifier.
+    let case_name = format!("{}-{}", case_info.group_id, case_info.test_name);
+
+    // Try loading verification input and result.
+    let verified_input_result_file: PathBuf =
+        [&basedir, Path::new(&format!("{}-io.json", case_name))]
+            .iter()
+            .collect();
+    let mut verified_input = case_info.clone_as_serializable();
+    if let Ok(verified_input_result_str) =
+        fs::read_to_string(&verified_input_result_file)
+    {
+        if let Ok(verified_input_result) = serde_json::from_str::<
+            VerifiedCaseInputSer,
+        >(&verified_input_result_str)
+        {
+            if verified_input_result == verified_input {
+                return Ok(verified_input_result.verified.unwrap());
+            }
+        }
+    }
+
     // Create a minimal vimrc if not already exists.
     let vimrc_file_path: PathBuf =
         [&basedir, Path::new("vimrc")].iter().collect();
@@ -386,9 +463,6 @@ fn verify_case(case_info: &VerifiedCaseInput) -> Result<bool, String> {
             .write_all("set rtp+=~/.vim/bundle/vader.vim\n".as_bytes())
             .map_err(|_| format!("Failed to write vimrc file"))?;
     }
-
-    // Form the unique case identifier.
-    let case_name = format!("{}-{}", case_info.group_id, case_info.test_name);
 
     // Create the vim vader test file.
     let vader_file_name = format!("{}.vader", case_name);
@@ -416,5 +490,13 @@ fn verify_case(case_info: &VerifiedCaseInput) -> Result<bool, String> {
         .current_dir(&basedir)
         .timeout(Duration::from_secs(5))
         .assert();
-    Ok(assert.try_success().is_ok())
+    let verified_result = assert.try_success().is_ok();
+
+    // Try dumping result to json.
+    verified_input.verified = Some(verified_result);
+    if let Ok(contents) = serde_json::to_string(&verified_input) {
+        fs::write(verified_input_result_file, contents).ok();
+    }
+
+    Ok(verified_result)
 }
