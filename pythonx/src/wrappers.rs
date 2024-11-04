@@ -30,7 +30,7 @@ impl<'b, 'py> BufferLike for BoundWrapper<'b, 'py, PyAny> {
 struct JiebaWrapper(Jieba);
 
 impl JiebaPlaceholder for JiebaWrapper {
-    fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
+    fn cut_hmm<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
         self.0.cut(sentence, true)
     }
 }
@@ -41,7 +41,7 @@ struct LazyJiebaWrapper {
 }
 
 impl JiebaPlaceholder for LazyJiebaWrapper {
-    fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
+    fn cut_hmm<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
         self.jieba
             .borrow_mut()
             .get_or_insert_with(|| match &self.path {
