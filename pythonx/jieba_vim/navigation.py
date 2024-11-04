@@ -72,7 +72,7 @@ def _vim_wrapper_factory_x(motion_name):
 
     def _teardown_wrapper():
         # The `m>gv` trick reference:
-        # https://github.com/svermeulen/vim-NotableFt/blob/master/plugin/NotableFt.vim
+        # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L32
         vim.command('normal! m>')
         vim.command('set virtualedit=')
         vim.command('normal! gv')
