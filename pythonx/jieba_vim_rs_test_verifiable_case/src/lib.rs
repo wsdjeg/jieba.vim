@@ -305,7 +305,7 @@ Then:
                     r#"
 Execute:
   call cursor({lnum_before}, {col_before})
-  execute "normal! {v}{motion}\<cr>"
+  execute "normal! {v}{motion}" | execute "normal! \<Esc>"
   let g:groundtruth_lnum = line("{reg}")
   let g:groundtruth_col = col("{reg}")
 
