@@ -24,10 +24,14 @@ def _init_word_motion():
     if word_motion is not None:
         return
     user_dict = vim.eval('g:jieba_vim_user_dict') or None
-    if int(vim.eval('g:jieba_vim_lazy')):
-        word_motion = jieba_vim_rs.LazyWordMotion(user_dict)
-    else:
-        word_motion = jieba_vim_rs.WordMotion(user_dict)
+    try:
+        if int(vim.eval('g:jieba_vim_lazy')):
+            word_motion = jieba_vim_rs.LazyWordMotion(user_dict)
+        else:
+            word_motion = jieba_vim_rs.WordMotion(user_dict)
+    except (IOError, ValueError):
+        vim.command('echoerr "jieba.vim: failed to load user dict: {}"'.format(
+            user_dict))
 
 
 _init_word_motion()
