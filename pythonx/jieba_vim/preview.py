@@ -27,7 +27,7 @@ def preview(navi_func):
     """
     Preview corresponding navigation.
 
-    :param navi_func: a function from ``jieba_vim.jieba_navi_rs`` module of
+    :param navi_func: a function from ``jieba_vim.jieba_vim_rs`` module of
            signature ``(buffer, cursor_pos) -> cursor_pos``.
     """
     vim.command('hi link JiebaPreview IncSearch')
@@ -37,7 +37,7 @@ def preview(navi_func):
     cursor_positions = []
     if limit == 0:
         while True:
-            next_row, next_col = navi_func(b, (curr_row, curr_col))
+            next_row, next_col = navi_func(b, (curr_row, curr_col), 1)
             # reaches either beginning of file or end of file
             if (next_row, next_col) == (curr_row, curr_col):
                 break
@@ -48,7 +48,7 @@ def preview(navi_func):
             curr_row, curr_col = next_row, next_col
     else:
         while len(cursor_positions) < limit:
-            next_row, next_col = navi_func(b, (curr_row, curr_col))
+            next_row, next_col = navi_func(b, (curr_row, curr_col), 1)
             # reaches either beginning of file or end of file
             if (next_row, next_col) == (curr_row, curr_col):
                 break
