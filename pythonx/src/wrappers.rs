@@ -116,13 +116,17 @@ pub struct LazyWordMotionWrapper {
 impl LazyWordMotionWrapper {
     #[new]
     #[pyo3(signature = (path=None))]
-    pub fn from_dict(path: Option<String>) -> Self {
-        Self {
+    pub fn from_dict(path: Option<String>) -> PyResult<Self> {
+        // Check if `path` is readable beforehand.
+        if let Some(path) = &path {
+            File::open(path).map_err(|err| PyIOError::new_err(err))?;
+        }
+        Ok(Self {
             wm: WordMotion::new(LazyJiebaWrapper {
                 path,
                 jieba: RefCell::new(None),
             }),
-        }
+        })
     }
 
     pub fn nmap_w(
