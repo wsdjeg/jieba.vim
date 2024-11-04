@@ -29,7 +29,6 @@ pub struct ForwardTokenIterator<'b, 'p, B: ?Sized, C> {
     lines: usize,
     word: bool,
     cursor: bool,
-    eol: bool,
 }
 
 impl<'b, 'p, B, C> ForwardTokenIterator<'b, 'p, B, C>
@@ -51,8 +50,6 @@ where
             super::index_tokens(&tokens, col).unwrap_or(tokens.len());
         let cursor = (token_index == 0 && tokens.is_empty())
             || token_index < tokens.len();
-        let eol = (token_index == 0 && tokens.is_empty())
-            || token_index == tokens.len() - 1;
         let lines = buffer.lines()?;
         Ok(Self {
             buffer,
@@ -63,7 +60,6 @@ where
             lines,
             word,
             cursor,
-            eol,
         })
     }
 

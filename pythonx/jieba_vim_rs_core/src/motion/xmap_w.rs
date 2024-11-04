@@ -2,7 +2,7 @@ use super::token_iter::{ForwardTokenIterator, TokenIteratorItem};
 use super::{BufferLike, WordMotion};
 use crate::token::{JiebaPlaceholder, TokenLike, TokenType};
 
-/// Test if a token is stoppable for `nmap_w`.
+/// Test if a token is stoppable for `xmap_w`.
 fn is_stoppable(item: &TokenIteratorItem) -> bool {
     if item.cursor {
         false
@@ -31,16 +31,13 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
     ///
     /// # Edge cases
     ///
-    /// - If current cursor is on the last character of the last token in the
-    ///   buffer, no further jump should be made.
-    /// - If there is no next word to the right of current cursor, jump to the
-    ///   last character of the last token in the buffer.
-    ///
-    /// # Panics
-    ///
-    /// - If current cursor `col` is to the right of the last token in current
-    ///   line of the buffer.
-    pub fn nmap_w<B: BufferLike + ?Sized>(
+    /// - If current cursor is on the one character to the right of the last
+    ///   character of the last token in the buffer, no further jump should be
+    ///   made.
+    /// - If there is no next word to the right of current cursor, jump to one
+    ///   character to the right of the last character of the last token in the
+    ///   buffer.
+    pub fn xmap_w<B: BufferLike + ?Sized>(
         &self,
         buffer: &B,
         cursor_pos: (usize, usize),
@@ -55,13 +52,17 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
             let item = it.next().unwrap()?;
             if !is_stoppable(&item) {
                 lnum = item.lnum;
-                col = item.token.last_char();
+                if it.peek().is_some() {
+                    col = item.token.last_char();
+                } else {
+                    col = item.token.last_char1();
+                }
             } else {
                 lnum = item.lnum;
                 col = item.token.first_char();
                 count -= 1;
                 if count > 0 && it.peek().is_none() {
-                    col = item.token.last_char();
+                    col = item.token.last_char1();
                 }
             }
         }
@@ -97,21 +98,49 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
-                    #[ntest_timeout::timeout(50)]
+                    #[ntest_timeout::timeout(150)]
                     fn [<$test_name _word_ $index>]() {
                         let motion = WORD_MOTION.get().unwrap();
                         let cm = CursorMarker;
                         let buffer = verified_case!(
-                            motion_nmap_w,
-                            [<$test_name _word_ $index>],
+                            motion_xmap_w,
+                            [<$test_name _xc_word_ $index>],
                             [$($buffer_item),*],
-                            "n", "", $count, "w");
+                            "xc", "", $count, "w");
                         let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
                         let output = cm.strip_markers(buffer).unwrap();
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         assert_eq!(
-                            motion.nmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            motion.xmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            Ok((ac.lnum, ac.col))
+                        );
+
+                        let buffer = verified_case!(
+                            motion_xmap_w,
+                            [<$test_name _xl_word_ $index>],
+                            [$($buffer_item),*],
+                            "xl", "", $count, "w");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.xmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            Ok((ac.lnum, ac.col))
+                        );
+
+                        let buffer = verified_case!(
+                            motion_xmap_w,
+                            [<$test_name _xb_word_ $index>],
+                            [$($buffer_item),*],
+                            "xb", "", $count, "w");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.xmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
                             Ok((ac.lnum, ac.col))
                         );
                     }
@@ -127,21 +156,49 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
-                    #[ntest_timeout::timeout(50)]
+                    #[ntest_timeout::timeout(150)]
                     fn [<$test_name _WORD_ $index>]() {
                         let motion = WORD_MOTION.get().unwrap();
                         let cm = CursorMarker;
                         let buffer = verified_case!(
-                            motion_nmap_w,
-                            [<$test_name _WORD_ $index>],
+                            motion_xmap_w,
+                            [<$test_name _xc_WORD_ $index>],
                             [$($buffer_item),*],
-                            "n", "", $count, "W");
+                            "xc", "", $count, "w");
                         let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
                         let output = cm.strip_markers(buffer).unwrap();
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         assert_eq!(
-                            motion.nmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false),
+                            motion.xmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false),
+                            Ok((ac.lnum, ac.col))
+                        );
+
+                        let buffer = verified_case!(
+                            motion_xmap_w,
+                            [<$test_name _xl_WORD_ $index>],
+                            [$($buffer_item),*],
+                            "xl", "", $count, "w");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.xmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false),
+                            Ok((ac.lnum, ac.col))
+                        );
+
+                        let buffer = verified_case!(
+                            motion_xmap_w,
+                            [<$test_name _xb_WORD_ $index>],
+                            [$($buffer_item),*],
+                            "xb", "", $count, "w");
+                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
+                        let output = cm.strip_markers(buffer).unwrap();
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        assert_eq!(
+                            motion.xmap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false),
                             Ok((ac.lnum, ac.col))
                         );
                     }
@@ -157,28 +214,28 @@ mod tests {
 
     word_motion_tests!(
         test_space (word):
-        (1) ["{} "], 1;
-        (2) ["{    } "], 1;
+        (1) ["{ }"], 1;
+        (2) ["{     }"], 1;
     );
 
     word_motion_tests!(
         test_one_word (word):
-        (1) ["aaa{}a"], 1;
-        (2) ["a{aa}a"], 1;
-        (3) ["a{aa}a"], 2;
+        (1) ["aaa{a}"], 1;
+        (2) ["a{aaa}"], 1;
+        (3) ["a{aaa}"], 2;
     );
 
     word_motion_tests!(
         test_one_word_space (word):
-        (1) ["a{aaa   } "], 1;
-        (2) ["aaa{a   } "], 1;
-        (3) ["aaaa {  } "], 1;
+        (1) ["a{aaa    }"], 1;
+        (2) ["aaa{a    }"], 1;
+        (3) ["aaaa {   }"], 1;
     );
 
     word_motion_tests!(
         test_two_words (word):
         (1) ["a{aaa  }aaa"], 1;
-        (2) ["a{aaa  aa}a"], 2;
+        (2) ["a{aaa  aaa}"], 2;
     );
 
     word_motion_tests!(
@@ -195,9 +252,9 @@ mod tests {
 
     word_motion_tests!(
         test_one_word_newline_space (word):
-        (1) ["a{aaa", "   } "], 1;
-        (2) ["a{aaa", "  ", "   } "], 1;
-        (3) ["aaaa", "{  ", "   } "], 1;
+        (1) ["a{aaa", "    }"], 1;
+        (2) ["a{aaa", "  ", "    }"], 1;
+        (3) ["aaaa", "{  ", "    }"], 1;
         (4) ["a{aa", "}", "   "], 1;
     );
 
@@ -211,12 +268,5 @@ mod tests {
         test_one_word_newline_space_word (word):
         (1) ["a{aaa", " ", " ", "}aaa"], 1;
         (2) ["a{aaa", " ", " ", "   }aaa"], 1;
-    );
-
-    word_motion_tests!(
-        test_large_unnecessary_count (word):
-        (1) ["{}"], 10293949403;
-        (2) ["a{aa aaa}a"], 10293949403;
-        (3) ["aaa {aaa}a"], 10293949403;
     );
 }

@@ -1,7 +1,8 @@
 use crate::utils;
 
 pub trait JiebaPlaceholder {
-    fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str>;
+    /// Cut sentence with `hmm` enabled.
+    fn cut_hmm<'a>(&self, sentence: &'a str) -> Vec<&'a str>;
 }
 
 /// Character types.
@@ -442,7 +443,6 @@ fn group_chars_rule(
     }
 }
 
-// TODO buggy implementation
 impl CharGroup {
     /// Split `self` into subgroups, whose types will be recategorized. Panics
     /// if `self.chars.len() != sizes.sum()`.
@@ -524,7 +524,7 @@ fn cut_hanzi_rule<C: JiebaPlaceholder>(
         Word(W::Hanzi) => {
             let s = group.to_string();
             let n_chars: Vec<_> = jieba
-                .cut(&s)
+                .cut_hmm(&s)
                 .into_iter()
                 .map(|part| part.chars().count())
                 .collect();
@@ -724,7 +724,7 @@ mod tests {
     use proptest::prelude::*;
 
     impl JiebaPlaceholder for Jieba {
-        fn cut<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
+        fn cut_hmm<'a>(&self, sentence: &'a str) -> Vec<&'a str> {
             self.cut(sentence, true)
         }
     }

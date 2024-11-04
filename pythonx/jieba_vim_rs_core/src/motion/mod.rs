@@ -3,8 +3,10 @@ use std::cmp::Ordering;
 
 mod nmap_e;
 mod nmap_w;
+mod omap_c_w;
 mod omap_w;
 mod token_iter;
+mod xmap_w;
 
 /// Any type that resembles a Vim buffer.
 pub trait BufferLike {

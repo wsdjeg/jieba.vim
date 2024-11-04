@@ -135,7 +135,7 @@ mod tests {
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         assert_eq!(
-                            motion.nmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, true),
+                            motion.nmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, false),
                             Ok((ac.lnum, ac.col))
                         );
                     }
