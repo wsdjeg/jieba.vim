@@ -209,6 +209,12 @@ mod tests {
     );
 
     word_motion_tests!(
+        test_empty_word (word):
+        (1) ["{", "}abc  def"], 1;
+        (2) ["{", "abc  }def"], 2;
+    );
+
+    word_motion_tests!(
         test_one_word (word):
         (1) ["{abcd}"], 1;
         (2) ["a{bcd}"], 1;
@@ -249,6 +255,9 @@ mod tests {
         (6) ["abcd   efg{h", "}  ijkl"], 1;
         (7) ["abcd   {efgh", "}ijkl  "], 1;
         (8) ["abcd   efg{h", "}ijkl  "], 1;
+        (9) ["abcd   {efgh", "   ijkl}"], 2;
+        (10) ["abcd   {efgh", "ijkl   }"], 2;
+        (11) ["abcd   {efgh", "   ijkl   }"], 2;
     );
 
     word_motion_tests!(
@@ -275,5 +284,7 @@ mod tests {
         (4) ["ab{cd  efg", "} ", "  ", "  ", "  hij"], 2;
         (5) ["ab{cd  efg", " ", "  ", "  ", "  hij", "}  ", ""], 3;
         (6) ["ab{cd  efg", "", "} ", "  hij"], 3;
+        (7) ["ab{cd  efg", " ", "  hij   }", ""], 3;
+        (8) ["ab{cd  efg", " ", "  ", "  ", "  hij  }", "  ", ""], 3;
     );
 }
