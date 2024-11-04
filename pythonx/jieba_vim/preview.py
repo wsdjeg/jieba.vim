@@ -37,37 +37,17 @@ def get_preview_limit():
     return min(limit, PREVIEW_MAX_LIMIT)
 
 
-def preview(navi_func):
+def preview(preview_func):
     """
     Preview corresponding navigation.
 
-    :param navi_func: a function from ``jieba_vim.jieba_vim_rs`` module of
-           signature ``(buffer, cursor_pos) -> cursor_pos``.
+    :param preview_func: a function from ``jieba_vim.jieba_vim_rs`` module of
+           signature ``(buffer, cursor_pos, limit) -> list[cursor_pos]``.
     """
     vim.command('hi link JiebaPreview IncSearch')
     limit = get_preview_limit()
-    curr_row, curr_col = vim.current.window.cursor
-    b = vim.current.buffer
-    cursor_positions = []
-    if limit == 0:
-        while True:
-            next_row, next_col = navi_func(b, (curr_row, curr_col), 1)
-            # reaches either beginning of file or end of file
-            if (next_row, next_col) == (curr_row, curr_col):
-                break
-            # reaches either previous line or next line
-            if next_row != curr_row:
-                break
-            cursor_positions.append((next_row, next_col))
-            curr_row, curr_col = next_row, next_col
-    else:
-        while len(cursor_positions) < limit:
-            next_row, next_col = navi_func(b, (curr_row, curr_col), 1)
-            # reaches either beginning of file or end of file
-            if (next_row, next_col) == (curr_row, curr_col):
-                break
-            cursor_positions.append((next_row, next_col))
-            curr_row, curr_col = next_row, next_col
+    cursor_positions = preview_func(vim.current.buffer,
+                                    vim.current.window.cursor, limit)
     if cursor_positions:
         # build match pattern if there's any positions to highlight
         match_pat = '|'.join('%{}c%{}l'.format(col + 1, row)

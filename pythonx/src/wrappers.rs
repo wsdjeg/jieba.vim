@@ -21,6 +21,8 @@ use std::cell::RefCell;
 use std::fs::File;
 use std::io::BufReader;
 
+use crate::preview;
+
 struct BoundWrapper<'b, 'py, T>(&'b Bound<'py, T>);
 
 impl<'b, 'py, T> From<&'b Bound<'py, T>> for BoundWrapper<'b, 'py, T> {
@@ -193,6 +195,64 @@ impl WordMotionWrapper {
         self.wm
             .nmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
     }
+
+    pub fn preview_nmap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_w(b, c, 1, true),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    #[allow(non_snake_case)]
+    pub fn preview_nmap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_w(b, c, 1, false),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    pub fn preview_nmap_e(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_e(b, c, 1, true),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    #[allow(non_snake_case)]
+    pub fn preview_nmap_E(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_e(b, c, 1, false),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
 }
 
 #[pyclass]
@@ -312,5 +372,63 @@ impl LazyWordMotionWrapper {
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
+    }
+
+    pub fn preview_nmap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_w(b, c, 1, true),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    #[allow(non_snake_case)]
+    pub fn preview_nmap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_w(b, c, 1, false),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    pub fn preview_nmap_e(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_e(b, c, 1, true),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    #[allow(non_snake_case)]
+    pub fn preview_nmap_E(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| self.wm.nmap_e(b, c, 1, false),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
     }
 }

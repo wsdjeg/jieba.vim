@@ -35,7 +35,7 @@ command! JiebaPreviewCancel py3 jieba_vim.preview_cancel()
 let s:motions = ["w", "W"]
 
 for ky in s:motions
-    execute 'nnoremap <silent> <Plug>(Jieba_preview_' . ky . ') :<C-u>py3 jieba_vim.preview(jieba_vim.navigation.word_motion.nmap_' . ky . ')<CR>'
+    execute 'nnoremap <silent> <Plug>(Jieba_preview_' . ky . ') :<C-u>py3 jieba_vim.preview(jieba_vim.navigation.word_motion.preview_nmap_' . ky . ')<CR>'
 endfor
 nnoremap <silent> <Plug>(Jieba_preview_cancel) :<C-u>py3 jieba_vim.preview_cancel()<CR>
 
