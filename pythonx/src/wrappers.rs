@@ -104,6 +104,81 @@ impl WordMotionWrapper {
         self.wm
             .nmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
     }
+
+    pub fn xmap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .xmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
+    }
+
+    #[allow(non_snake_case)]
+    pub fn xmap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .xmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
+    }
+
+    pub fn omap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        if operator == "c" {
+            self.wm
+                .omap_c_w(&BoundWrapper(buffer), cursor_pos, count, true)
+        } else {
+            self.wm
+                .omap_w(&BoundWrapper(buffer), cursor_pos, count, true)
+        }
+    }
+
+    #[allow(non_snake_case)]
+    pub fn omap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        if operator == "c" {
+            self.wm
+                .omap_c_w(&BoundWrapper(buffer), cursor_pos, count, false)
+        } else {
+            self.wm
+                .omap_w(&BoundWrapper(buffer), cursor_pos, count, false)
+        }
+    }
+
+    pub fn nmap_e(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .nmap_e(&BoundWrapper(buffer), cursor_pos, count, true)
+    }
+
+    #[allow(non_snake_case)]
+    pub fn nmap_E(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .nmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
+    }
 }
 
 #[pyclass]
@@ -148,5 +223,80 @@ impl LazyWordMotionWrapper {
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
+    }
+
+    pub fn xmap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .xmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
+    }
+
+    #[allow(non_snake_case)]
+    pub fn xmap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .xmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
+    }
+
+    pub fn omap_w(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        if operator == "c" {
+            self.wm
+                .omap_c_w(&BoundWrapper(buffer), cursor_pos, count, true)
+        } else {
+            self.wm
+                .omap_w(&BoundWrapper(buffer), cursor_pos, count, true)
+        }
+    }
+
+    #[allow(non_snake_case)]
+    pub fn omap_W(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        if operator == "c" {
+            self.wm
+                .omap_c_w(&BoundWrapper(buffer), cursor_pos, count, false)
+        } else {
+            self.wm
+                .omap_w(&BoundWrapper(buffer), cursor_pos, count, false)
+        }
+    }
+
+    pub fn nmap_e(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .nmap_e(&BoundWrapper(buffer), cursor_pos, count, true)
+    }
+
+    #[allow(non_snake_case)]
+    pub fn nmap_E(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: usize,
+    ) -> PyResult<(usize, usize)> {
+        self.wm
+            .nmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
     }
 }
