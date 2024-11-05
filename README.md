@@ -1,5 +1,7 @@
 # jieba.vim: Vim 的中文按词跳转插件
 
+*在[此](https://github.com/kkew3/jieba.vim/tree/dev/rust)关注最新开发进度。*
+
 *For English, see below.*
 
 ## 简介
