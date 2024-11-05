@@ -1,6 +1,8 @@
 # jieba.vim: Vim 的中文按词跳转插件
 
-*For English, see below.*
+> 做最好的基于 jieba 的 Vim 中文分词插件。
+
+<em>For English, see <a href="#en">below</a>.</em>
 
 ## 简介
 
@@ -18,8 +20,7 @@ Vim (以及很多其它文本编辑器) 使用 [word motions][1] 在一行内移
 Plug 'kkew3/jieba.vim', { 'branch': 'rust', 'do': './build.sh' }
 ```
 
-可能需要进入插件目录调整 `pythonx/Cargo.toml` 中的 pyo3 python ABI 版本，以匹配 vim 中 python3 的版本。
-可以在终端使用
+虽然通常不需要，但在极少数情况下可能需要进入插件目录调整 `pythonx/Cargo.toml` 中的 pyo3 python ABI 版本，以匹配 vim 中 python3 的版本。可以在终端使用
 
 ```bash
 vim +"py3 print(sys.version)"
@@ -29,10 +30,9 @@ vim +"py3 print(sys.version)"
 
 ## 功能
 
-1. 增强八个 Vim word motion 的功能，即 `b`、`B`、`ge`、`gE`、`w`、`W`、`e`、`E`，使其能用于中文分词（同时也保留其按空格分词的功能）。其行为与默认行为相似，例如 `w` 不会跳过中文标点而 `W` 会跳过中文标点等。
-2. 预览 word motion 的跳转位置。
-
-由于中文分词有时存在歧义，即使没有歧义也会有人类与 jieba 的对齐问题，因此有时中文 word motion 的跳转位置并不显然。这时用户可能想提前预览将要进行的跳转将会跳转到哪些位置。
+1. 增强八个 Vim word motion，即 `b`、`B`、`ge`、`gE`、`w`、`W`、`e`、`E`，在 `nmap`, `xmap` 和 `omap` 下的功能，使其能用于中文分词（同时也保留其按空格分词的功能）。其行为与默认行为相似，例如 `w` 不会跳过中文标点而 `W` 会跳过中文标点等。
+2. 在无中文 ASCII 文档中与 Vim 原生 word motion 行为*完全兼容*。结合懒惰加载（见下文 `g:jieba_vim_lazy` 开关）可实现（在某些文档类型中）常开。
+3. 预览 word motion 的跳转位置。由于中文分词有时存在歧义，即使没有歧义也会有人类与 jieba 的对齐问题，因此有时中文 word motion 的跳转位置并不显然。这时用户可能想提前预览将要进行的跳转将会跳转到哪些位置。
 
 ## 使用
 
@@ -44,7 +44,7 @@ vim +"py3 print(sys.version)"
 
 - `<Plug>(Jieba_preview_cancel)`：即 `JiebaPreviewCancel` 命令
 - `<Plug>(Jieba_preview_X)`：预览增强了的 `X` 的跳转位置
-- `<Plug>(Jieba_X)`: 增强了的 `X`，同时在 normal、operator-pending、visual (除 visual line 模式外) 三种模式下可用，以及可与 count 协同使用。例如假设 `w` 被映射到 `<Plug>(Jieba_w)`，那么 `3w` 将是向后跳三个词，`d3w` 是删除后三个词
+- `<Plug>(Jieba_X)`: 增强了的 `X`，同时在 normal、operator-pending、visual 三种模式下可用，以及可与 count 协同使用。例如假设 `w` 被映射到 `<Plug>(Jieba_w)`，那么 `3w` 将是向后跳三个词，`d3w` 是删除后三个词
 
 用户可自行在 `.vimrc` 中将按键映射到这些 `<Plug>()` 映射。例如：
 
@@ -55,111 +55,41 @@ map w <Plug>(Jieba_w)
 " 等等
 ```
 
-### 例子 1 -- 灵活启用/禁用 jieba.vim
+提供快捷开关 `g:jieba_vim_keymap`，可通过在 `.vimrc` 中将其设为 1 来开启对八个 word motion 的 `nmap`, `xmap` 和 `omap`。
 
-在 `.vimrc` 中加入以下代码：
+## 开关和选项
 
-```vim
-function! s:JiebaMapKeys()
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'nmap <buffer> <LocalLeader>j' . ky . ' <Plug>(Jieba_preview_' . ky . ')'
-        for md in modes
-            execute md . 'map ' . ky . ' <Plug>(Jieba_' . ky . ')'
-        endfor
-    endfor
-endfunction
-
-function! s:JiebaUnmapKeys()
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'silent! nunmap <buffer> <LocalLeader>j' . ky
-        for md in modes
-            execute 'silent! ' . md . 'unmap ' . ky
-        endfor
-    endfor
-endfunction
-
-command! JiebaEnable call s:JiebaMapKeys()
-command! JiebaDisable call s:JiebaUnmapKeys()
-```
-
-该代码在调用 `JiebaEnable` 命令时启用 jieba.vim，而调用 `JiebaDisable` 命令时禁用 jieba.vim。启用时 `<LocalLeader>jX` 会被映射为 `<Plug>(Jieba_preview_X)`、`X` 会被映射为 `<Plug>(Jieba_X)`。
-
-### 例子 2 -- 我的配置
-
-```vim
-function! s:JiebaMapKeys()
-    if exists("b:jieba_enabled")
-        return
-    endif
-    let b:jieba_enabled = 1
-
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'nmap <buffer> <LocalLeader>j' . ky . ' <Plug>(Jieba_preview_' . ky . ')'
-        for md in modes
-            execute md . 'map ' . ky . ' <Plug>(Jieba_' . ky . ')'
-        endfor
-    endfor
-endfunction
-
-function! s:JiebaUnmapKeys()
-    if exists("b:jieba_enabled")
-        unlet b:jieba_enabled
-    else
-        return
-    endif
-
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'silent! nunmap <buffer> <LocalLeader>j' . ky
-        for md in modes
-            execute 'silent! ' . md . 'unmap ' . ky
-        endfor
-    endfor
-endfunction
-
-function! s:JiebaToggle()
-    if exists("b:jieba_enabled")
-        call s:JiebaUnmapKeys()
-    else
-        call s:JiebaMapKeys()
-    endif
-endfunction
-
-command! JiebaEnable call s:JiebaMapKeys()
-command! JiebaDisable call s:JiebaUnmapKeys()
-command! JiebaToggle call s:JiebaToggle()
-
-nnoremap <Leader>jj :<C-u>JiebaToggle<CR>
-
-augroup jieba_group
-    autocmd!
-    autocmd FileType text :JiebaEnable
-    autocmd FileType markdown :JiebaEnable
-    autocmd FileType tex :JiebaEnable
-augroup END
-```
-
-## Bug
-
-- 无法对行末文字做 `onoremap` 操作。详见[这个提问][onoremap-question]。
+- `g:jieba_vim_lazy` (默认 1)：是/否 (1/0) 延迟加载 jieba 词典直到有中文出现。
+- `g:jieba_vim_user_dict` (默认空)：若为非空字符串，加载此文件路径所指向的用户自定义词典。
+- `g:jieba_vim_keymap` (默认 0)：是/否 (1/0) 自动开启 keymap。
 
 ## 对于开发者
 
 若想在本地运行针对 rust 实现的测试，
 
 ```bash
-cd pythonx
+# 核心代码
+cd pythonx/jieba_vim_rs_core
+cargo test
+# 可开启 verifiable_case 来验证测试本身是否正确，需要安装 junegunn/vader.vim
+# (https://github.com/junegunn/vader.vim).
+#cargo test -F verifiable_case
+# 测试工具代码
+cd ../jieba_vim_rs_test
 cargo test
 ```
 
+## Roadmap
+
+见 [TODO.md](./TODO.md)。
+
+## 许可
+
+Apache license v2.
+
 ---
+
+<div id="en">
 
 # jieba.vim: Facilitate better word motions when editing Chinese text in Vim
 
@@ -184,7 +114,7 @@ For [vim-plug][6],
 Plug 'kkew3/jieba.vim', { 'branch': 'rust', 'do': './build.sh' }
 ```
 
-User may need to adjust the pyo3 python ABI in `pythonx/Cargo.toml` under the plugin directory after downloading the plugin, in order to match with the python3 version vim is compiled against.
+Though not always necessary, user may need to adjust the pyo3 python ABI in `pythonx/Cargo.toml` under the plugin directory after downloading the plugin, in order to match with the python3 version vim is compiled against.
 The vim's python3 version may be checked by the following command at terminal:
 
 ```bash
@@ -194,10 +124,8 @@ vim +"py3 print(sys.version)"
 ## Functions
 
 1. Augment eight Vim word motions (i.e. `b`, `B`, `ge`, `gE`, `w`, `W`, `e`, `E`) such that they can be used in Chinese text and English text at the same time. The augmented behavior remains similar. For example, augmented `w` won't jump over Chinese punctuation whereas `W` will.
-2. Preview the destination of the word motions beforehand.
-
-Since there's sometimes ambiguity in Chinese word segmentation, and since even when there's no ambiguity, jieba library may not align well with human users, it's not always evident where a word motion will jump to.
-In such circumstance, user may want to preview jumps beforehand.
+2. The behavior of the augmented word motions is compatible with Vim's original word motions when handling ASCII text without Chinese. Together with lazy loading (see the option `g:jieba_vim_lazy`), it's possible to leave this plugin on (for certain file types).
+3. Preview the destination of the word motions beforehand. Since there's sometimes ambiguity in Chinese word segmentation, and since even when there's no ambiguity, jieba library may not align well with human users, it's not always evident where a word motion will jump to. In such circumstance, user may want to preview jumps beforehand.
 
 ## Usage
 
@@ -211,7 +139,7 @@ Provided `<Plug>()` mappings, wherein `X` denotes the eight Vim word motion keys
 
 - `<Plug>(Jieba_preview_cancel)`: same as the command `JiebaPreviewCancel`
 - `<Plug>(Jieba_preview_X)`: preview the destination of the augmented `X`
-- `<Plug>(Jieba_X)`: the augmented `X`. This mapping is usable in normal, operator-pending and visual modes (except for visual line mode), and can be used together with count. For example, assuming that `w` has been mapped to `<Plug>(Jieba_w)`, then `3w` will jump three words forward, `d3w` will delete three words forward
+- `<Plug>(Jieba_X)`: the augmented `X`. This mapping is usable in normal, operator-pending and visual modes, and can be used together with count. For example, assuming that `w` has been mapped to `<Plug>(Jieba_w)`, then `3w` will jump three words forward, `d3w` will delete three words forward
 
 User may map keys to these `<Plug>()` mappings on their own.
 For example,
@@ -223,111 +151,37 @@ map w <Plug>(Jieba_w)
 " etc.
 ```
 
-### Usage example 1 -- enable and disable jieba.vim anytime
+A convenient option `g:jieba_vim_keymap` is provided. When set to 1, the keymap of the eight word motions under `nmap`, `xmap` and `omap` will be enabled.
 
-Insert the following code in `.vimrc`:
+## Switches and options
 
-```vim
-function! s:JiebaMapKeys()
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'nmap <buffer> <LocalLeader>j' . ky . ' <Plug>(Jieba_preview_' . ky . ')'
-        for md in modes
-            execute md . 'map ' . ky . ' <Plug>(Jieba_' . ky . ')'
-        endfor
-    endfor
-endfunction
-
-function! s:JiebaUnmapKeys()
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'silent! nunmap <buffer> <LocalLeader>j' . ky
-        for md in modes
-            execute 'silent! ' . md . 'unmap ' . ky
-        endfor
-    endfor
-endfunction
-
-command! JiebaEnable call s:JiebaMapKeys()
-command! JiebaDisable call s:JiebaUnmapKeys()
-```
-
-This snippet enable jieba.vim key mappings when `JiebaEnable` command is called, and disable those mappings when `JiebaDisable` is called.
-When enabling jieba.vim, `<LocalLeader>jX` will be mapped to `<Plug>(Jieba_preview_X)`, and `X` will be mapped to `<Plug>(Jieba_X)`.
-
-### Usage example 2 -- my configuration
-
-```vim
-function! s:JiebaMapKeys()
-    if exists("b:jieba_enabled")
-        return
-    endif
-    let b:jieba_enabled = 1
-
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'nmap <buffer> <LocalLeader>j' . ky . ' <Plug>(Jieba_preview_' . ky . ')'
-        for md in modes
-            execute md . 'map ' . ky . ' <Plug>(Jieba_' . ky . ')'
-        endfor
-    endfor
-endfunction
-
-function! s:JiebaUnmapKeys()
-    if exists("b:jieba_enabled")
-        unlet b:jieba_enabled
-    else
-        return
-    endif
-
-    let keys = ["b", "B", "ge", "gE", "w", "W", "e", "E",]
-    let modes = ["n", "o", "x",]
-    for ky in keys
-        execute 'silent! nunmap <buffer> <LocalLeader>j' . ky
-        for md in modes
-            execute 'silent! ' . md . 'unmap ' . ky
-        endfor
-    endfor
-endfunction
-
-function! s:JiebaToggle()
-    if exists("b:jieba_enabled")
-        call s:JiebaUnmapKeys()
-    else
-        call s:JiebaMapKeys()
-    endif
-endfunction
-
-command! JiebaEnable call s:JiebaMapKeys()
-command! JiebaDisable call s:JiebaUnmapKeys()
-command! JiebaToggle call s:JiebaToggle()
-
-nnoremap <Leader>jj :<C-u>JiebaToggle<CR>
-
-augroup jieba_group
-    autocmd!
-    autocmd FileType text :JiebaEnable
-    autocmd FileType markdown :JiebaEnable
-    autocmd FileType tex :JiebaEnable
-augroup END
-```
-
-## Bug
-
-- `onoremap` does not apply to the end of line. For details see [this question][onoremap-question].
+- `g:jieba_vim_lazy` (default 1): Whether or not (1/0) to delay loading jieba dictionary until occurrence of any Chinese characters.
+- `g:jieba_vim_user_dict` (default empty): When set to nonempty string, load the custom user dictionary pointed to by this file path.
+- `g:jieba_vim_keymap` (default 0): Whether or not (1/0) to enable jieba keymap.
 
 ## For developers
 
 To run tests against rust implementation locally,
 
 ```bash
-cd pythonx
+# Core logic
+cd pythonx/jieba_vim_rs_core
+cargo test
+# verifiable_case feature can be enabled to verify the correctness of the tests.
+# junegunn/vader.vim (https://github.com/junegunn/vader.vim) is required.
+#cargo test -F verifiable_case
+# Test utilities
+cd ../jieba_vim_rs_test
 cargo test
 ```
 
+## Roadmap
+
+See [TODO.md](./TODO.md).
+
+## License
+
+Apache license v2.
 
 
 [1]: https://vimdoc.sourceforge.net/htmldoc/motion.html#word-motions
@@ -336,4 +190,3 @@ cargo test
 [4]: https://github.com/ginqi7/deno-bridge-jieba
 [5]: https://github.com/cathaysia/jieba_nvim
 [6]: https://github.com/junegunn/vim-plug
-[onoremap-question]: https://stackoverflow.com/q/79082971/7881370

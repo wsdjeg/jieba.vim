@@ -1,0 +1,20 @@
+- [ ] 测试并实现 normal, visual, operator-pending 模式下的八种 word motions。要求在 ASCII 文档中与 Vim 原生 word motions 完全兼容，否则视为 bug。
+    - [x] nmap w/W
+    - [x] xmap w/W
+    - [x] omap w/W
+    - [x] omap c w/W (omap w/W 的特殊情况)
+    - [ ] nmap b/B
+    - [ ] xmap b/B
+    - [ ] omap b/B
+    - [x] nmap e/E
+    - [ ] xmap e/E
+    - [ ] omap e/E
+    - [ ] nmap ge/gE
+    - [ ] xmap ge/gE
+    - [ ] omap ge/gE
+- [ ] 测试并实现 word text object。要求在 ASCII 文档中与 Vim 原生 word text object 完全兼容，否则视为 bug。
+    - [ ] xmap i w/W
+    - [ ] omap i w/W
+    - [ ] xmap a w/W
+    - [ ] omap a w/W
+- [ ] 通过 rust-lua (例如 mlua) 接口提供对 neovim 更好的兼容性。
