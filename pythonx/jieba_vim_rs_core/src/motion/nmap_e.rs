@@ -53,7 +53,7 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
             if !is_stoppable(&item) {
                 lnum = item.lnum;
                 col = item.token.last_char();
-            } else if lnum != item.lnum || col != item.token.last_char() {
+            } else if !(item.cursor && col == item.token.last_char()) {
                 lnum = item.lnum;
                 col = item.token.last_char();
                 count -= 1;
