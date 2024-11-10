@@ -2,7 +2,7 @@ use super::{BufferLike, WordMotion};
 use crate::motion::token_iter::{ForwardTokenIterator, TokenIteratorItem};
 use crate::token::{JiebaPlaceholder, TokenLike, TokenType};
 
-/// Test if a token is stoppable for `nmap_e`.
+/// Test if a token is stoppable for `xmap_e`.
 fn is_stoppable(item: &TokenIteratorItem) -> bool {
     match item.token {
         None => false,
