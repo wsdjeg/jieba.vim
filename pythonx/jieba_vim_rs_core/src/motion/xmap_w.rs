@@ -19,7 +19,7 @@ fn is_stoppable(item: &TokenIteratorItem) -> bool {
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
     /// Vim motion `w` (if `word` is `true`) or `W` (if `word` is `false`)
-    /// in normal mode. Take in current `cursor_pos` (lnum, col), and return
+    /// in visual mode. Take in current `cursor_pos` (lnum, col), and return
     /// the new cursor position. Note that `lnum` is 1-indexed, and `col`
     /// is 0-indexed. We denote both `word` and `WORD` with the English word
     /// "word" below.
