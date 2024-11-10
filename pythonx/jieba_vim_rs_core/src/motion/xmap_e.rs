@@ -164,7 +164,7 @@ mod tests {
                             motion_xmap_e,
                             [<$test_name _xc_WORD_ $index>],
                             [$($buffer_item),*],
-                            "xc", "", $count, "e");
+                            "xc", "", $count, "E");
                         let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
                         let output = cm.strip_markers(buffer).unwrap();
                         let bc = output.before_cursor_position;
@@ -178,7 +178,7 @@ mod tests {
                             motion_xmap_e,
                             [<$test_name _xl_WORD_ $index>],
                             [$($buffer_item),*],
-                            "xl", "", $count, "e");
+                            "xl", "", $count, "E");
                         let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
                         let output = cm.strip_markers(buffer).unwrap();
                         let bc = output.before_cursor_position;
@@ -192,7 +192,7 @@ mod tests {
                             motion_xmap_e,
                             [<$test_name _xb_WORD_ $index>],
                             [$($buffer_item),*],
-                            "xb", "", $count, "e");
+                            "xb", "", $count, "E");
                         let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
                         let output = cm.strip_markers(buffer).unwrap();
                         let bc = output.before_cursor_position;
