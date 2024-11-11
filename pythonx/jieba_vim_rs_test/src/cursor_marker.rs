@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// `{` represents the cursor before a motion. `}` represents the cursor after
@@ -26,7 +27,7 @@ impl fmt::Debug for Error {
 
 /// The position (lnum, col) of a cursor. `lnum` is 1-indexed while `col` is
 /// 0-indexed.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Deserialize, Serialize)]
 pub struct CursorPosition {
     pub lnum: usize,
     pub col: usize,
