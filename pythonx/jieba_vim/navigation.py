@@ -22,6 +22,14 @@ These names are dynamically defined in this module::
     - teardown_xmap_W
     - omap_w
     - omap_W
+    - nmap_e
+    - nmap_E
+    - xmap_e
+    - teardown_xmap_e
+    - xmap_E
+    - teardown_xmap_E
+    - omap_e
+    - omap_E
 """
 import vim
 
@@ -115,11 +123,50 @@ def _vim_wrapper_factory_o(motion_name):
     return {fun_name: _motion_wrapper}
 
 
+def _vim_wrapper_factory_omap_e(motion_name):
+    assert motion_name in ['e', 'E']
+    fun_name = 'omap_' + motion_name
+
+    def _motion_wrapper(operator, count):
+        method = getattr(word_motion, fun_name)
+        # virtualedit trick reference:
+        # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L242-L256
+        #
+        # I tried `let s:jieba_vim_previous_virtualedit = &virtualedit` but got
+        # error "Illegal variable name: s:jieba_vim_previous_virtualedit". Will
+        # the use of global variable lead to race condition when there are
+        # multiple instances of Vim open?
+        vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
+        vim.command('set virtualedit=onemore')
+        vim.current.window.cursor, is_prev_d_special = method(
+            vim.current.buffer, vim.current.window.cursor, operator, count)
+        vim.command(
+            'augroup jieba_vim_reset_virtualedit '
+            '| autocmd! '
+            '| autocmd TextChanged,CursorMoved <buffer> '
+            'execute "set virtualedit=" . g:jieba_vim_previous_virtualedit '
+            '| autocmd! jieba_vim_reset_virtualedit '
+            '| augroup END')
+        # This patch breaks `.` (see https://vimhelp.org/repeat.txt.html#.).
+        # Need help on fixing this issue.
+        if is_prev_d_special:
+            vim.command('augroup jieba_vim_teardown_d_special '
+                        '| autocmd! '
+                        '| autocmd TextChanged <buffer> execute "normal! dd" '
+                        '| autocmd! jieba_vim_teardown_d_special '
+                        '| augroup END')
+
+    return {fun_name: _motion_wrapper}
+
+
 def _define_functions():
-    for mo in ['w', 'W']:
+    for mo in ['w', 'W', 'e', 'E']:
         globals().update(_vim_wrapper_factory_n(mo))
         globals().update(_vim_wrapper_factory_x(mo))
-        globals().update(_vim_wrapper_factory_o(mo))
+        if mo in ['e', 'E']:
+            globals().update(_vim_wrapper_factory_omap_e(mo))
+        else:
+            globals().update(_vim_wrapper_factory_o(mo))
 
 
 _define_functions()
