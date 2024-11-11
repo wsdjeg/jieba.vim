@@ -7,6 +7,7 @@ edition = "2021"
 
 [dev-dependencies]
 jieba-rs = "0.7"
+ntest_timeout = "0.9.3"
 serial_test = "3.2.0"
 proptest = "1.0"
 ctor = "0.2.8"
