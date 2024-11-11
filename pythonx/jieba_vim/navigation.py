@@ -64,7 +64,7 @@ def _vim_wrapper_factory_x(motion_name):
 
     def _motion_wrapper(count):
         method = getattr(word_motion, fun_name)
-        # I tried `let g:jieba_vim_previous_virtualedit = &virtualedit` but got
+        # I tried `let s:jieba_vim_previous_virtualedit = &virtualedit` but got
         # error "Illegal variable name: s:jieba_vim_previous_virtualedit". Will
         # the use of global variable lead to race condition when there are
         # multiple instances of Vim open?
@@ -95,7 +95,7 @@ def _vim_wrapper_factory_o(motion_name):
         # virtualedit trick reference:
         # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L242-L256
         #
-        # I tried `let g:jieba_vim_previous_virtualedit = &virtualedit` but got
+        # I tried `let s:jieba_vim_previous_virtualedit = &virtualedit` but got
         # error "Illegal variable name: s:jieba_vim_previous_virtualedit". Will
         # the use of global variable lead to race condition when there are
         # multiple instances of Vim open?
