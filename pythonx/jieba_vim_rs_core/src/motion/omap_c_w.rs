@@ -138,11 +138,10 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 mod tests {
     use super::super::WordMotion;
     use jieba_rs::Jieba;
-    use jieba_vim_rs_test::cursor_marker::CursorMarker;
-    #[cfg(feature = "verifiable_case")]
-    use jieba_vim_rs_test_verifiable_case::verified_case;
-    #[cfg(not(feature = "verifiable_case"))]
-    use jieba_vim_rs_test_verifiable_case::verified_case_dry_run as verified_case;
+    use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
+    use jieba_vim_rs_test::verified_case::{
+        Error, Mode, Motion, VerifiedCaseInput,
+    };
     use once_cell::sync::OnceCell;
 
     static WORD_MOTION: OnceCell<WordMotion<Jieba>> = OnceCell::new();
@@ -162,23 +161,26 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
-                    #[ntest_timeout::timeout(50)]
-                    fn [<$test_name _word_ $index>]() {
+                    #[serial_test::serial]
+                    fn [<$test_name _word_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
-                        let cm = CursorMarker;
-                        let buffer = verified_case!(
-                            motion_omap_c_w,
-                            [<$test_name _word_ $index>],
-                            [$($buffer_item),*],
-                            "o", "c", $count, "w");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_omap_c_w".into(),
+                            stringify!([<$test_name _word_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::Operator,
+                            "c".into(),
+                            Motion::SmallW($count),
+                            false,
+                            false,
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.omap_c_w(&output.striped_lines, (bc.lnum, bc.col), $count, true),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.omap_c_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+                        Ok(())
                     }
                 }
             )*
@@ -192,23 +194,26 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
-                    #[ntest_timeout::timeout(50)]
-                    fn [<$test_name _WORD_ $index>]() {
+                    #[serial_test::serial]
+                    fn [<$test_name _WORD_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
-                        let cm = CursorMarker;
-                        let buffer = verified_case!(
-                            motion_omap_c_w,
-                            [<$test_name _WORD_ $index>],
-                            [$($buffer_item),*],
-                            "o", "c", $count, "W");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_omap_c_w".into(),
+                            stringify!([<$test_name _WORD_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::Operator,
+                            "c".into(),
+                            Motion::LargeW($count),
+                            false,
+                            false,
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.omap_c_w(&output.striped_lines, (bc.lnum, bc.col), $count, false),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.omap_c_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+                        Ok(())
                     }
                 }
             )*
@@ -313,6 +318,12 @@ mod tests {
         (9) ["abcd   {efgh", "   ijkl}"], 2;
         (10) ["abcd   {efgh", "ijkl}   "], 2;
         (11) ["abcd   {efgh", "   ijkl}   "], 2;
+    );
+
+    word_motion_tests!(
+        test_word_newline_newline (word):
+        (1) ["abcd", "{   }", "   "], 1;
+        (2) ["abcd", "{   ", "   }"], 2;
     );
 
     word_motion_tests!(

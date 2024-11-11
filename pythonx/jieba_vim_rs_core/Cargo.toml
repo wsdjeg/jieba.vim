@@ -7,14 +7,11 @@ edition = "2021"
 
 [dev-dependencies]
 jieba-rs = "0.7"
-proptest = "1.0"
 ntest_timeout = "0.9.3"
+serial_test = "3.2.0"
+proptest = "1.0"
 ctor = "0.2.8"
 once_cell = "1.20"
 paste = "1.0"
 const_format = "0.2.33"
-jieba_vim_rs_test_verifiable_case = { path = "../jieba_vim_rs_test_verifiable_case" }
 jieba_vim_rs_test = { path = "../jieba_vim_rs_test" }
-
-[features]
-verifiable_case = []

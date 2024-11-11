@@ -12,6 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
 /// `{` represents the cursor before a motion. `}` represents the cursor after
@@ -40,7 +41,7 @@ impl fmt::Debug for Error {
 
 /// The position (lnum, col) of a cursor. `lnum` is 1-indexed while `col` is
 /// 0-indexed.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Deserialize, Serialize)]
 pub struct CursorPosition {
     pub lnum: usize,
     pub col: usize,
@@ -51,7 +52,7 @@ pub struct CursorPosition {
 pub struct StripMarkerOutput {
     pub before_cursor_position: CursorPosition,
     pub after_cursor_position: CursorPosition,
-    pub striped_lines: Vec<String>,
+    pub stripped_buffer: Vec<String>,
 }
 
 // We assume that each cursor marker is ASCII, and consumes exactly one byte.
@@ -134,7 +135,7 @@ impl CursorMarker {
         Ok(StripMarkerOutput {
             before_cursor_position: before_position.unwrap(),
             after_cursor_position: after_position.unwrap(),
-            striped_lines: lines,
+            stripped_buffer: lines,
         })
     }
 }
@@ -166,55 +167,55 @@ mod tests {
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (1, 4));
         assert_eq!(o.after_cursor_position, (2, 3));
-        assert_eq!(o.striped_lines, vec!["foo bar", "hello"]);
+        assert_eq!(o.stripped_buffer, vec!["foo bar", "hello"]);
 
         let lines = into_vec_string(["foo{ b}ar", "hello"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (1, 3));
         assert_eq!(o.after_cursor_position, (1, 5));
-        assert_eq!(o.striped_lines, vec!["foo bar", "hello"]);
+        assert_eq!(o.stripped_buffer, vec!["foo bar", "hello"]);
 
         let lines = into_vec_string(["foo} b{ar", "hello"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (1, 5));
         assert_eq!(o.after_cursor_position, (1, 3));
-        assert_eq!(o.striped_lines, vec!["foo bar", "hello"]);
+        assert_eq!(o.stripped_buffer, vec!["foo bar", "hello"]);
 
         let lines = into_vec_string(["fo{}o bar", "hello"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (1, 2));
         assert_eq!(o.after_cursor_position, (1, 2));
-        assert_eq!(o.striped_lines, vec!["foo bar", "hello"]);
+        assert_eq!(o.stripped_buffer, vec!["foo bar", "hello"]);
 
         let lines = into_vec_string(["fo}{o bar", "hello"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (1, 2));
         assert_eq!(o.after_cursor_position, (1, 2));
-        assert_eq!(o.striped_lines, vec!["foo bar", "hello"]);
+        assert_eq!(o.stripped_buffer, vec!["foo bar", "hello"]);
 
         let lines = into_vec_string(["hello", "foo{ b}ar"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (2, 3));
         assert_eq!(o.after_cursor_position, (2, 5));
-        assert_eq!(o.striped_lines, vec!["hello", "foo bar"]);
+        assert_eq!(o.stripped_buffer, vec!["hello", "foo bar"]);
 
         let lines = into_vec_string(["hello", "foo} b{ar"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (2, 5));
         assert_eq!(o.after_cursor_position, (2, 3));
-        assert_eq!(o.striped_lines, vec!["hello", "foo bar"]);
+        assert_eq!(o.stripped_buffer, vec!["hello", "foo bar"]);
 
         let lines = into_vec_string(["hello", "fo{}o bar"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (2, 2));
         assert_eq!(o.after_cursor_position, (2, 2));
-        assert_eq!(o.striped_lines, vec!["hello", "foo bar"]);
+        assert_eq!(o.stripped_buffer, vec!["hello", "foo bar"]);
 
         let lines = into_vec_string(["hello", "fo}{o bar"]);
         let o = cm.strip_markers(lines).unwrap();
         assert_eq!(o.before_cursor_position, (2, 2));
         assert_eq!(o.after_cursor_position, (2, 2));
-        assert_eq!(o.striped_lines, vec!["hello", "foo bar"]);
+        assert_eq!(o.stripped_buffer, vec!["hello", "foo bar"]);
 
         let lines = into_vec_string(["hello"]);
         let err = cm.strip_markers(lines).unwrap_err();

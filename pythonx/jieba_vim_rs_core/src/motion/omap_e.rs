@@ -13,26 +13,19 @@
 // under the License.
 
 use super::{BufferLike, WordMotion};
-use crate::motion::token_iter::{ForwardTokenIterator, TokenIteratorItem};
-use crate::token::{JiebaPlaceholder, TokenLike, TokenType};
-
-/// Test if a token is stoppable for `nmap_e`.
-fn is_stoppable(item: &TokenIteratorItem) -> bool {
-    match item.token {
-        None => false,
-        Some(token) => match token.ty {
-            TokenType::Word => true,
-            TokenType::Space => false,
-        },
-    }
-}
+use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
-    /// Vim motion `e` (if `word` is `true`) or `E` (if `word` is `false`)
-    /// in normal mode. Take in current `cursor_pos` (lnum, col), and return
-    /// the new cursor position. Note that `lnum` is 1-indexed, and `col`
-    /// is 0-indexed. We denote both `word` and `WORD` with the English word
-    /// "word" below.
+    /// Vim motion `e` (if `word` is `true`) or `E` (if `word` is `false`) in
+    /// operator-pending mode while used with operator `d`. Since Vim's help
+    /// states in section "exclusive-linewise" that:
+    ///
+    /// > When using ":" any motion becomes characterwise exclusive,
+    ///
+    /// But since `e`/`E` is itself inclusive, and `o_v`
+    /// (https://vimhelp.org/motion.txt.html#o_v) can be used to invert
+    /// exclusiveness to inclusiveness, we may use prefix the colon command
+    /// with it and reuse most code from `nmap e`.
     ///
     /// # Basics
     ///
@@ -51,29 +44,14 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
     ///
     /// - If current cursor `col` is to the right of the last token in current
     ///   line of the buffer.
-    pub fn nmap_e<B: BufferLike + ?Sized>(
+    pub fn omap_e<B: BufferLike + ?Sized>(
         &self,
         buffer: &B,
         cursor_pos: (usize, usize),
-        mut count: usize,
+        count: usize,
         word: bool,
     ) -> Result<(usize, usize), B::Error> {
-        let (mut lnum, mut col) = cursor_pos;
-        let mut it =
-            ForwardTokenIterator::new(buffer, &self.jieba, lnum, col, word)?
-                .peekable();
-        while count > 0 && it.peek().is_some() {
-            let item = it.next().unwrap()?;
-            if !is_stoppable(&item) {
-                lnum = item.lnum;
-                col = item.token.last_char();
-            } else if !(item.cursor && col == item.token.last_char()) {
-                lnum = item.lnum;
-                col = item.token.last_char();
-                count -= 1;
-            }
-        }
-        Ok((lnum, col))
+        self.nmap_e(buffer, cursor_pos, count, word)
     }
 }
 
@@ -107,22 +85,41 @@ mod tests {
                     #[serial_test::serial]
                     fn [<$test_name _word_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
+
                         let output = VerifiedCaseInput::new(
-                            "motion_nmap_e".into(),
+                            "motion_omap_c_e".into(),
                             stringify!([<$test_name _word_ $index>]).into(),
                             vec![$($buffer_item.into()),*],
-                            Mode::Normal,
-                            "".into(),
+                            Mode::Operator,
+                            "c".into(),
                             Motion::SmallE($count),
-                            false,
+                            true,
                             false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         let timing = AssertElapsed::tic(50);
-                        let r = motion.nmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        let r = motion.omap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
                         timing.toc();
                         assert_eq!(r, Ok((ac.lnum, ac.col)));
+
+                        let output = VerifiedCaseInput::new(
+                            "motion_omap_y_e".into(),
+                            stringify!([<$test_name _word_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::Operator,
+                            "y".into(),
+                            Motion::SmallE($count),
+                            true,
+                            false,
+                        )?.verify_case()?;
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.omap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+
                         Ok(())
                     }
                 }
@@ -140,22 +137,41 @@ mod tests {
                     #[serial_test::serial]
                     fn [<$test_name _WORD_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
+
                         let output = VerifiedCaseInput::new(
-                            "motion_nmap_e".into(),
+                            "motion_omap_c_e".into(),
                             stringify!([<$test_name _WORD_ $index>]).into(),
                             vec![$($buffer_item.into()),*],
-                            Mode::Normal,
-                            "".into(),
+                            Mode::Operator,
+                            "c".into(),
                             Motion::LargeE($count),
-                            false,
+                            true,
                             false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         let timing = AssertElapsed::tic(50);
-                        let r = motion.nmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
+                        let r = motion.omap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
                         timing.toc();
                         assert_eq!(r, Ok((ac.lnum, ac.col)));
+
+                        let output = VerifiedCaseInput::new(
+                            "motion_omap_y_e".into(),
+                            stringify!([<$test_name _WORD_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::Operator,
+                            "y".into(),
+                            Motion::LargeE($count),
+                            true,
+                            false,
+                        )?.verify_case()?;
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.omap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+
                         Ok(())
                     }
                 }
@@ -170,71 +186,84 @@ mod tests {
 
     word_motion_tests!(
         test_one_word (word):
-        (1) ["aaa{}a"], 1;
-        (2) ["a{aa}a"], 1;
-        (3) ["a{aa}a"], 2;
+        (1) ["abc{}d"], 1;
+        (2) ["abc{}d"], 2;
+        (3) ["a{bc}d"], 1;
+        (4) ["a{bc}d"], 2;
     );
 
     word_motion_tests!(
         test_one_word_space (word):
-        (1) ["a{aa}a    "], 1;
-        (2) ["aaa{a   } "], 1;
-        (3) ["aaaa {  } "], 1;
+        (1) ["a{bc}d    "], 1;
+        (2) ["a{bcd   } "], 2;
+        (3) ["abc{d   } "], 1;
+        (4) ["abc{d   } "], 2;
+        (5) ["abcd {  } "], 1;
+        (6) ["abcd {  } "], 2;
     );
 
     word_motion_tests!(
         test_two_words (word):
-        (1) ["a{aa}a  aaa"], 1;
-        (2) ["a{aaa  aa}a"], 2;
-        (3) ["aaa{a aa}a"], 1;
-        (4) ["aaa{a aa}a"], 2;
+        (1) ["a{bc}d  efg"], 1;
+        (2) ["a{bcd  ef}g"], 2;
+        (3) ["a{bcd  ef}g"], 3;
+        (4) ["abc{d ef}g"], 1;
+        (5) ["abc{d ef}g"], 2;
+        (6) ["abc{d efg  } "], 3;
     );
 
     word_motion_tests!(
         test_one_word_newline (word):
-        (1) ["a{aa}a", ""], 1;
-        (2) ["a{aaa", "}"], 2;
-        (3) ["aaa{a", "}"], 1;
+        (1) ["a{bc}d", ""], 1;
+        (2) ["a{bcd", "}"], 2;
+        (3) ["abc{d", "}"], 1;
+    );
+
+    word_motion_tests!(
+        test_word_newline_newline (word):
+        (1) ["abcd", "{   ", "  } "], 1;
+        (2) ["abcd", "{   ", "  } "], 2;
     );
 
     word_motion_tests!(
         test_one_word_space_newline (word):
-        (1) ["a{aa}a    ", ""], 1;
-        (2) ["aaa{a     ", "}"], 1;
-        (3) ["aaaa{    ", "}"], 1;
-        (4) ["aaaa {   ", "}"], 1;
+        (1) ["a{bc}d    ", ""], 1;
+        (2) ["abc{d     ", "}"], 1;
+        (3) ["abcd{    ", "}"], 1;
+        (4) ["abcd {   ", "}"], 1;
     );
 
     word_motion_tests!(
         test_one_word_newline_space (word):
-        (1) ["aaa{a", "   } "], 1;
-        (2) ["aaa{a", "  ", "   } "], 1;
-        (3) ["aaaa", "{  ", "   } "], 1;
-        (4) ["aaa{a", "", "   } "], 1;
+        (1) ["abc{d", "   } "], 1;
+        (2) ["abc{d", "  ", "   } "], 1;
+        (3) ["abcd", "{  ", "   } "], 1;
+        (4) ["abc{d", "", "   } "], 1;
     );
 
     word_motion_tests!(
         test_one_word_newline_space_newline (word):
-        (1) ["aaa{a", " ", "}"], 1;
-        (2) ["aaa{a", " ", " ", "}"], 1;
-        (3) ["aaa{a", "", " ", "}"], 1;
-        (4) ["aaa{a", " ", "", "}"], 1;
-        (5) ["aaa{a", "", "", "}"], 1
+        (1) ["abc{d", " ", "}"], 1;
+        (2) ["abc{d", " ", " ", "}"], 1;
+        (3) ["abc{d", "", " ", "}"], 1;
+        (4) ["abc{d", " ", "", "}"], 1;
+        (5) ["abc{d", "", "", "}"], 1
     );
 
     word_motion_tests!(
         test_word_newline_word (word):
-        (1) ["a{aa}a", "", " ", "", "aaa"], 1;
-        (2) ["aaa{a", "", " ", "", "aa}a"], 1;
-        (3) ["aaa{a", "  ", "", " ", "aaa}a"], 1;
-        (4) ["aaa{a", "", "aa}a", "", "aaaa"], 1;
-        (5) ["aaa{a", "", "aaa", "", "aaa}a"], 2;
+        (1) ["a{bc}d", "", " ", "", "efg"], 1;
+        (2) ["abc{d", "", " ", "", "ef}g  "], 1;
+        (3) ["abc{d", "  ", "", " ", "efg}h"], 1;
+        (4) ["abc{d", "", "ef}g", "", "efgh"], 1;
+        (5) ["abc{d", "", "efg", "", "efg}h"], 2;
+        (6) ["abc{d", "", "efg", "", "efg}h  "], 2;
     );
 
     word_motion_tests!(
         test_large_unnecessary_count (word):
         (1) ["{}"], 10293949403;
-        (2) ["a{aa aaa}a"], 10293949403;
-        (3) ["aaa {aaa}a"], 10293949403;
+        (2) ["a{bc def}g"], 10293949403;
+        (3) ["abc {def}g"], 10293949403;
     );
 }

@@ -18,8 +18,11 @@ use std::cmp::Ordering;
 mod nmap_e;
 mod nmap_w;
 mod omap_c_w;
+mod omap_d_e;
+mod omap_e;
 mod omap_w;
 mod token_iter;
+mod xmap_e;
 mod xmap_w;
 
 /// Any type that resembles a Vim buffer.
