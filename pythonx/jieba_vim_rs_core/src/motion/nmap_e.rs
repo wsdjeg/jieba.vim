@@ -101,6 +101,7 @@ mod tests {
                             "".into(),
                             Motion::SmallE($count),
                             false,
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -132,6 +133,7 @@ mod tests {
                             Mode::Normal,
                             "".into(),
                             Motion::LargeE($count),
+                            false,
                             false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;

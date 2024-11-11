@@ -158,6 +158,7 @@ mod tests {
                             "c".into(),
                             Motion::SmallW($count),
                             false,
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -189,6 +190,7 @@ mod tests {
                             Mode::Operator,
                             "c".into(),
                             Motion::LargeW($count),
+                            false,
                             false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;

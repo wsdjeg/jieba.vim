@@ -108,6 +108,7 @@ mod tests {
                             "".into(),
                             Motion::SmallW($count),
                             false,
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -124,6 +125,7 @@ mod tests {
                             "".into(),
                             Motion::SmallW($count),
                             false,
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -139,6 +141,7 @@ mod tests {
                             Mode::VisualBlock,
                             "".into(),
                             Motion::SmallW($count),
+                            false,
                             false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
@@ -173,6 +176,7 @@ mod tests {
                             "".into(),
                             Motion::LargeW($count),
                             false,
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -189,6 +193,7 @@ mod tests {
                             "".into(),
                             Motion::LargeW($count),
                             false,
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -204,6 +209,7 @@ mod tests {
                             Mode::VisualBlock,
                             "".into(),
                             Motion::LargeW($count),
+                            false,
                             false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;

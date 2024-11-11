@@ -76,6 +76,7 @@ pub struct VerifiedCaseInput {
     pub operator: String,
     pub motion: Motion,
     pub o_v: bool,
+    pub d_special: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -185,16 +186,14 @@ Before:
 "#
                 )?;
                 write_vader_given_block(&mut tofile, &buffer_lines)?;
-                if !(operator.starts_with("d")
-                    || operator.starts_with("c")
-                    || operator.starts_with("y"))
-                {
+                if !(operator == "d" || operator == "c" || operator == "y") {
                     panic!("Unsupported operator: {}", operator);
                 }
                 let o_v = if self.o_v { "v" } else { "" };
-                write!(
-                    tofile,
-                    r#"
+                if operator == "y" {
+                    write!(
+                        tofile,
+                        r#"
 Execute:
   call cursor({lnum_before}, {col_before})
   let @b = ""
@@ -224,8 +223,73 @@ Then:
   AssertEqual g:groundtruth_buffer, g:rust_buffer
 
 Before:
-"#
-                )?;
+    "#
+                    )?;
+                } else if operator == "c" {
+                    write!(
+                        tofile,
+                        r#"
+Execute:
+  call cursor({lnum_before}, {col_before})
+  let @b = ""
+  normal! {operator}{motion}XXX
+  let g:groundtruth_lnum = line(".")
+  let g:groundtruth_col = col(".")
+  1,$y b
+  let g:groundtruth_buffer = @b
+
+  silent! normal! u
+  let @b = ""
+  call cursor({lnum_before}, {col_before})
+  execute "normal! {operator}{o_v}:call VeCursor({lnum_after}, {col_after})\<cr>XXX"
+  set virtualedit=
+  let g:rust_lnum = line(".")
+  let g:rust_col = col(".")
+  1,$y b
+  let g:rust_buffer = @b
+
+Then:
+  AssertEqual g:groundtruth_lnum, g:rust_lnum
+  AssertEqual g:groundtruth_col, g:rust_col
+  AssertEqual g:groundtruth_buffer, g:rust_buffer
+
+Before:
+    "#
+                    )?;
+                } else {
+                    let dd = if self.d_special { "normal! dd" } else { "" };
+                    write!(
+                        tofile,
+                        r#"
+Execute:
+  call cursor({lnum_before}, {col_before})
+  let @b = ""
+  normal! {operator}{motion}
+  let g:groundtruth_lnum = line(".")
+  let g:groundtruth_col = col(".")
+  1,$y b
+  let g:groundtruth_buffer = @b
+
+  silent! normal! u
+  let @b = ""
+  call cursor({lnum_before}, {col_before})
+  execute "normal! {operator}{o_v}:call VeCursor({lnum_after}, {col_after})\<cr>"
+  {dd}
+  set virtualedit=
+  let g:rust_lnum = line(".")
+  let g:rust_col = col(".")
+  1,$y b
+  let g:rust_buffer = @b
+
+Then:
+  AssertEqual g:groundtruth_lnum, g:rust_lnum
+  AssertEqual g:groundtruth_col, g:rust_col
+  AssertEqual g:groundtruth_buffer, g:rust_buffer
+
+Before:
+    "#
+                    )?;
+                }
             }
         }
 
@@ -240,6 +304,7 @@ Before:
         operator: String,
         motion: Motion,
         o_v: bool,
+        d_special: bool,
     ) -> Result<Self, Error> {
         let parsed_buffer = CursorMarker
             .strip_markers(marked_buffer.clone())
@@ -274,6 +339,7 @@ Before:
             operator,
             motion,
             o_v,
+            d_special,
         })
     }
 
