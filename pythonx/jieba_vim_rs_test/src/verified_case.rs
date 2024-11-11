@@ -184,23 +184,35 @@ Before:
 "#
                 )?;
                 write_vader_given_block(&mut tofile, &buffer_lines)?;
+                if !(operator.starts_with("d")
+                    || operator.starts_with("c")
+                    || operator.starts_with("y"))
+                {
+                    panic!("Unsupported operator: {}", operator);
+                }
                 write!(
                     tofile,
                     r#"
 Execute:
   call cursor({lnum_before}, {col_before})
-  normal! {operator}{motion}
+  let @b = ""
+  let @x = ""
+  normal! "x{operator}{motion}
   let g:groundtruth_lnum = line(".")
   let g:groundtruth_col = col(".")
+  $put x
   1,$y b
   let g:groundtruth_buffer = @b
 
   silent! normal! u
+  let @b = ""
+  let @x = ""
   call cursor({lnum_before}, {col_before})
-  execute "normal! {operator}:call VeCursor({lnum_after}, {col_after})\<cr>"
+  execute 'normal! "x{operator}:call VeCursor({lnum_after}, {col_after})' . "\<cr>"
   set virtualedit=
   let g:rust_lnum = line(".")
   let g:rust_col = col(".")
+  $put x
   1,$y b
   let g:rust_buffer = @b
 
