@@ -75,6 +75,7 @@ pub struct VerifiedCaseInput {
     pub mode: Mode,
     pub operator: String,
     pub motion: Motion,
+    pub o_v: bool,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -190,6 +191,7 @@ Before:
                 {
                     panic!("Unsupported operator: {}", operator);
                 }
+                let o_v = if self.o_v { "v" } else { "" };
                 write!(
                     tofile,
                     r#"
@@ -208,7 +210,7 @@ Execute:
   let @b = ""
   let @x = ""
   call cursor({lnum_before}, {col_before})
-  execute 'normal! "x{operator}:call VeCursor({lnum_after}, {col_after})' . "\<cr>"
+  execute 'normal! "x{operator}{o_v}:call VeCursor({lnum_after}, {col_after})' . "\<cr>"
   set virtualedit=
   let g:rust_lnum = line(".")
   let g:rust_col = col(".")
@@ -237,6 +239,7 @@ Before:
         mode: Mode,
         operator: String,
         motion: Motion,
+        o_v: bool,
     ) -> Result<Self, Error> {
         let parsed_buffer = CursorMarker
             .strip_markers(marked_buffer.clone())
@@ -270,6 +273,7 @@ Before:
             mode,
             operator,
             motion,
+            o_v,
         })
     }
 

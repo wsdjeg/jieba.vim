@@ -107,6 +107,7 @@ mod tests {
                             Mode::VisualChar,
                             "".into(),
                             Motion::SmallE($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -122,6 +123,7 @@ mod tests {
                             Mode::VisualLine,
                             "".into(),
                             Motion::SmallE($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -137,6 +139,7 @@ mod tests {
                             Mode::VisualBlock,
                             "".into(),
                             Motion::SmallE($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -169,6 +172,7 @@ mod tests {
                             Mode::VisualChar,
                             "".into(),
                             Motion::LargeE($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -184,6 +188,7 @@ mod tests {
                             Mode::VisualLine,
                             "".into(),
                             Motion::LargeE($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -199,6 +204,7 @@ mod tests {
                             Mode::VisualBlock,
                             "".into(),
                             Motion::LargeE($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;

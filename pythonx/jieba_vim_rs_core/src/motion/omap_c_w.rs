@@ -157,6 +157,7 @@ mod tests {
                             Mode::Operator,
                             "c".into(),
                             Motion::SmallW($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -188,6 +189,7 @@ mod tests {
                             Mode::Operator,
                             "c".into(),
                             Motion::LargeW($count),
+                            false,
                         )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
@@ -301,7 +303,7 @@ mod tests {
         (10) ["abcd   {efgh", "ijkl}   "], 2;
         (11) ["abcd   {efgh", "   ijkl}   "], 2;
     );
-    
+
     word_motion_tests!(
         test_word_newline_newline (word):
         (1) ["abcd", "{   }", "   "], 1;
