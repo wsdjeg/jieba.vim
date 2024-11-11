@@ -74,11 +74,10 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 mod tests {
     use super::super::WordMotion;
     use jieba_rs::Jieba;
-    use jieba_vim_rs_test::cursor_marker::CursorMarker;
-    #[cfg(feature = "verifiable_case")]
-    use jieba_vim_rs_test_verifiable_case::verified_case;
-    #[cfg(not(feature = "verifiable_case"))]
-    use jieba_vim_rs_test_verifiable_case::verified_case_dry_run as verified_case;
+    use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
+    use jieba_vim_rs_test::verified_case::{
+        Error, Mode, Motion, VerifiedCaseInput,
+    };
     use once_cell::sync::OnceCell;
 
     static WORD_MOTION: OnceCell<WordMotion<Jieba>> = OnceCell::new();
@@ -98,51 +97,55 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
-                    #[ntest_timeout::timeout(150)]
-                    fn [<$test_name _word_ $index>]() {
+                    #[serial_test::serial]
+                    fn [<$test_name _word_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
-                        let cm = CursorMarker;
-                        let buffer = verified_case!(
-                            motion_xmap_e,
-                            [<$test_name _xc_word_ $index>],
-                            [$($buffer_item),*],
-                            "xc", "", $count, "e");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_xmap_e".into(),
+                            stringify!([<$test_name _xc_word_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::VisualChar,
+                            "".into(),
+                            Motion::SmallE($count),
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.xmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, true),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.xmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
 
-                        let buffer = verified_case!(
-                            motion_xmap_e,
-                            [<$test_name _xl_word_ $index>],
-                            [$($buffer_item),*],
-                            "xl", "", $count, "e");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_xmap_e".into(),
+                            stringify!([<$test_name _xl_word_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::VisualLine,
+                            "".into(),
+                            Motion::SmallE($count),
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.xmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, true),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.xmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
 
-                        let buffer = verified_case!(
-                            motion_xmap_e,
-                            [<$test_name _xb_word_ $index>],
-                            [$($buffer_item),*],
-                            "xb", "", $count, "e");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_xmap_e".into(),
+                            stringify!([<$test_name _xb_word_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::VisualBlock,
+                            "".into(),
+                            Motion::SmallE($count),
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.xmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, true),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.xmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+
+                        Ok(())
                     }
                 }
             )*
@@ -156,51 +159,55 @@ mod tests {
             $(
                 paste::paste! {
                     #[test]
-                    #[ntest_timeout::timeout(150)]
-                    fn [<$test_name _WORD_ $index>]() {
+                    #[serial_test::serial]
+                    fn [<$test_name _WORD_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
-                        let cm = CursorMarker;
-                        let buffer = verified_case!(
-                            motion_xmap_e,
-                            [<$test_name _xc_WORD_ $index>],
-                            [$($buffer_item),*],
-                            "xc", "", $count, "E");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_xmap_e".into(),
+                            stringify!([<$test_name _xc_WORD_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::VisualChar,
+                            "".into(),
+                            Motion::LargeE($count),
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.xmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, false),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.xmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
 
-                        let buffer = verified_case!(
-                            motion_xmap_e,
-                            [<$test_name _xl_WORD_ $index>],
-                            [$($buffer_item),*],
-                            "xl", "", $count, "E");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_xmap_e".into(),
+                            stringify!([<$test_name _xl_WORD_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::VisualLine,
+                            "".into(),
+                            Motion::LargeE($count),
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.xmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, false),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.xmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
 
-                        let buffer = verified_case!(
-                            motion_xmap_e,
-                            [<$test_name _xb_WORD_ $index>],
-                            [$($buffer_item),*],
-                            "xb", "", $count, "E");
-                        let buffer: Vec<String> = buffer.iter().map(|s| s.to_string()).collect();
-                        let output = cm.strip_markers(buffer).unwrap();
+                        let output = VerifiedCaseInput::new(
+                            "motion_xmap_e".into(),
+                            stringify!([<$test_name _xb_WORD_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::VisualBlock,
+                            "".into(),
+                            Motion::LargeE($count),
+                        )?.verify_case()?;
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
-                        assert_eq!(
-                            motion.xmap_e(&output.striped_lines, (bc.lnum, bc.col), $count, false),
-                            Ok((ac.lnum, ac.col))
-                        );
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.xmap_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+
+                        Ok(())
                     }
                 }
             )*
