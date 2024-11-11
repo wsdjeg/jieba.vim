@@ -130,6 +130,7 @@ mod tests {
                     #[serial_test::serial]
                     fn [<$test_name _word_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
+
                         let output = VerifiedCaseInput::new(
                             "motion_omap_d_w".into(),
                             stringify!([<$test_name _word_ $index>]).into(),
@@ -144,6 +145,22 @@ mod tests {
                         let r = motion.omap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
                         timing.toc();
                         assert_eq!(r, Ok((ac.lnum, ac.col)));
+
+                        let output = VerifiedCaseInput::new(
+                            "motion_omap_y_w".into(),
+                            stringify!([<$test_name _word_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::Operator,
+                            "y".into(),
+                            Motion::SmallW($count),
+                        )?.verify_case()?;
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.omap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+
                         Ok(())
                     }
                 }
@@ -161,6 +178,7 @@ mod tests {
                     #[serial_test::serial]
                     fn [<$test_name _WORD_ $index>]() -> Result<(), Error> {
                         let motion = WORD_MOTION.get().unwrap();
+
                         let output = VerifiedCaseInput::new(
                             "motion_omap_d_w".into(),
                             stringify!([<$test_name _WORD_ $index>]).into(),
@@ -175,6 +193,22 @@ mod tests {
                         let r = motion.omap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false);
                         timing.toc();
                         assert_eq!(r, Ok((ac.lnum, ac.col)));
+
+                        let output = VerifiedCaseInput::new(
+                            "motion_omap_y_w".into(),
+                            stringify!([<$test_name _WORD_ $index>]).into(),
+                            vec![$($buffer_item.into()),*],
+                            Mode::Operator,
+                            "y".into(),
+                            Motion::LargeW($count),
+                        )?.verify_case()?;
+                        let bc = output.before_cursor_position;
+                        let ac = output.after_cursor_position;
+                        let timing = AssertElapsed::tic(50);
+                        let r = motion.omap_w(&output.striped_lines, (bc.lnum, bc.col), $count, false);
+                        timing.toc();
+                        assert_eq!(r, Ok((ac.lnum, ac.col)));
+
                         Ok(())
                     }
                 }
