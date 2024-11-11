@@ -261,7 +261,7 @@ Before:
         })
     }
 
-    pub fn verify_case(&self) -> Result<(), Error> {
+    pub fn verify_case(self) -> Result<Self, Error> {
         // Create the working directory if not exists.
         let basedir: PathBuf = [
             env::var("CARGO_MANIFEST_DIR").unwrap(),
@@ -287,12 +287,14 @@ Before:
                     &verified_input_result_str,
                 )
             {
-                if &verified_input_result.input == self {
+                if &verified_input_result.input == &self {
                     if !verified_input_result.verified {
                         return Err(Error::CannotVerify {
                             group_id: self.group_id.clone(),
                             test_name: self.test_name.clone(),
                         });
+                    } else {
+                        return Ok(self);
                     }
                 }
             }
@@ -343,6 +345,6 @@ Before:
             });
         }
 
-        Ok(())
+        Ok(self)
     }
 }
