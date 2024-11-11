@@ -178,7 +178,7 @@ impl Parse for VerifiedCaseInput {
             before_cursor_position: parsed_buffers.before_cursor_position,
             after_cursor_position: parsed_buffers.after_cursor_position,
             buffers,
-            stripped_buffers: parsed_buffers.striped_lines,
+            stripped_buffers: parsed_buffers.stripped_buffer,
             mode,
             operator,
             motion,

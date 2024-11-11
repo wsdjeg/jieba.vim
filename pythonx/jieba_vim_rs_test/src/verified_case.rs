@@ -266,7 +266,7 @@ Before:
             before_cursor_position: parsed_buffer.before_cursor_position,
             after_cursor_position: parsed_buffer.after_cursor_position,
             buffer: marked_buffer,
-            stripped_buffer: parsed_buffer.striped_lines,
+            stripped_buffer: parsed_buffer.stripped_buffer,
             mode,
             operator,
             motion,
