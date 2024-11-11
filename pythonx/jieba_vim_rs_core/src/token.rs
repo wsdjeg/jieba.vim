@@ -471,7 +471,7 @@ impl CharGroup {
     /// Split `self` into subgroups, whose types will be recategorized. Panics
     /// if `self.chars.len() != sizes.sum()`.
     fn split_into_subgroups(self, sizes: Vec<usize>) -> Vec<CharGroup> {
-        assert_eq!(self.chars.len(), sizes.iter().sum());
+        assert_eq!(self.chars.len(), sizes.iter().sum::<usize>());
         let mut sub_groups = Vec::with_capacity(sizes.len());
         let mut chars = self.chars.into_iter();
         let mut start = self.col.start_byte_index;
