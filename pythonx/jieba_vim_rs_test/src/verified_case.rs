@@ -66,15 +66,15 @@ impl fmt::Display for Motion {
 
 #[derive(Clone, Eq, PartialEq, Deserialize, Serialize)]
 pub struct VerifiedCaseInput {
-    group_id: String,
-    test_name: String,
-    before_cursor_position: CursorPosition,
-    after_cursor_position: CursorPosition,
-    buffer: Vec<String>,
-    stripped_buffer: Vec<String>,
-    mode: Mode,
-    operator: String,
-    motion: Motion,
+    pub group_id: String,
+    pub test_name: String,
+    pub before_cursor_position: CursorPosition,
+    pub after_cursor_position: CursorPosition,
+    pub buffer: Vec<String>,
+    pub stripped_buffer: Vec<String>,
+    pub mode: Mode,
+    pub operator: String,
+    pub motion: Motion,
 }
 
 #[derive(Deserialize, Serialize)]
