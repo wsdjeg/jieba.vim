@@ -262,6 +262,12 @@ mod tests {
     );
 
     word_motion_tests!(
+        test_word_newline_newline (word):
+        (1) ["abcd", "{   }", "   "], 1;
+        (2) ["abcd", "{   ", "   }"], 2;
+    );
+
+    word_motion_tests!(
         test_space_newline_space (word):
         (1) ["    {  }", "       "], 1;
         (2) ["    {  ", "       }"], 2;

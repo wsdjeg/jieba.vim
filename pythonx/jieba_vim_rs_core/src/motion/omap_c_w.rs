@@ -301,6 +301,12 @@ mod tests {
         (10) ["abcd   {efgh", "ijkl}   "], 2;
         (11) ["abcd   {efgh", "   ijkl}   "], 2;
     );
+    
+    word_motion_tests!(
+        test_word_newline_newline (word):
+        (1) ["abcd", "{   }", "   "], 1;
+        (2) ["abcd", "{   ", "   }"], 2;
+    );
 
     word_motion_tests!(
         test_word_space_newline (word):
