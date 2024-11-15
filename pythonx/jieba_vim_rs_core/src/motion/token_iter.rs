@@ -15,11 +15,11 @@ pub struct TokenIteratorItem {
     pub eol: bool,
 }
 
-/// Forward iterator of `(lnum, token)`s in a `buffer`. If the cursor `col` is
-/// in a token, starts from that token; if `col` is to the right of the last
-/// token in current line, starts from the next token in the buffer. An empty
-/// line is regarded as a `None` token. If the cursor is at an empty line, also
-/// starts from that empty line.
+/// Forward iterator of [`TokenIteratorItem`]s in a `buffer`. If the cursor
+/// `col` is in a token, starts from that token; if `col` is to the right of
+/// the last token in current line, starts from the next token in the buffer.
+/// An empty line is regarded as a `None` token. If the cursor is at an empty
+/// line, also starts from that empty line.
 pub struct ForwardTokenIterator<'b, 'p, B: ?Sized, C> {
     buffer: &'b B,
     jieba: &'p C,
