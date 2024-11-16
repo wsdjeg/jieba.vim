@@ -26,8 +26,11 @@ pub struct ForwardTokenIterator<'b, 'p, B: ?Sized, C> {
     tokens: Vec<Token>,
     token_index: usize,
     lnum: usize,
+    /// Number of lines in `buffer`.
     lines: usize,
+    /// Whether to cut into word (true) or WORD (false).
     word: bool,
+    /// Whether current item is the cursor item or not.
     cursor: bool,
 }
 
