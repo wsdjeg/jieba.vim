@@ -28,6 +28,12 @@ impl FromStr for Mode {
 #[derive(Debug)]
 pub struct ParseModeError(String);
 
+impl fmt::Display for ParseModeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Unsupported mode: `{}`", self.0)
+    }
+}
+
 impl fmt::Display for Mode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -84,6 +90,12 @@ impl FromStr for Motion {
 #[derive(Debug)]
 pub struct ParseMotionError(String);
 
+impl fmt::Display for ParseMotionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Unsupported motion: `{}`", self.0)
+    }
+}
+
 impl fmt::Display for Motion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -123,3 +135,9 @@ impl FromStr for Operator {
 
 #[derive(Debug)]
 pub struct ParseOperatorError(String);
+
+impl fmt::Display for ParseOperatorError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Unsupported operator: `{}`", self.0)
+    }
+}
