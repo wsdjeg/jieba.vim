@@ -53,14 +53,14 @@ impl Mode {
 
 /// Vim word motions.
 pub enum Motion {
-    SmallW(u32),
-    LargeW(u32),
-    SmallE(u32),
-    LargeE(u32),
-    SmallB(u32),
-    LargeB(u32),
-    SmallGe(u32),
-    LargeGe(u32),
+    SmallW,
+    LargeW,
+    SmallE,
+    LargeE,
+    SmallB,
+    LargeB,
+    SmallGe,
+    LargeGe,
 }
 
 impl FromStr for Motion {
@@ -68,30 +68,15 @@ impl FromStr for Motion {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "w" => Ok(Self::SmallW(0)),
-            "W" => Ok(Self::LargeW(0)),
-            "e" => Ok(Self::SmallE(0)),
-            "E" => Ok(Self::LargeE(0)),
-            "b" => Ok(Self::SmallB(0)),
-            "B" => Ok(Self::LargeB(0)),
-            "ge" => Ok(Self::SmallGe(0)),
-            "gE" => Ok(Self::LargeGe(0)),
+            "w" => Ok(Self::SmallW),
+            "W" => Ok(Self::LargeW),
+            "e" => Ok(Self::SmallE),
+            "E" => Ok(Self::LargeE),
+            "b" => Ok(Self::SmallB),
+            "B" => Ok(Self::LargeB),
+            "ge" => Ok(Self::SmallGe),
+            "gE" => Ok(Self::LargeGe),
             s => Err(ParseMotionError(s.into())),
-        }
-    }
-}
-
-impl Motion {
-    pub fn with_count(self, count: u32) -> Self {
-        match self {
-            Self::SmallW(_) => Self::SmallW(count),
-            Self::LargeW(_) => Self::LargeW(count),
-            Self::SmallE(_) => Self::LargeE(count),
-            Self::LargeE(_) => Self::LargeE(count),
-            Self::SmallB(_) => Self::LargeB(count),
-            Self::LargeB(_) => Self::LargeB(count),
-            Self::SmallGe(_) => Self::SmallGe(count),
-            Self::LargeGe(_) => Self::LargeGe(count),
         }
     }
 }
@@ -102,22 +87,14 @@ pub struct ParseMotionError(String);
 impl fmt::Display for Motion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::SmallW(c) if *c == 0 => write!(f, "w"),
-            Self::SmallW(c) => write!(f, "{}w", c),
-            Self::LargeW(c) if *c == 0 => write!(f, "W"),
-            Self::LargeW(c) => write!(f, "{}W", c),
-            Self::SmallE(c) if *c == 0 => write!(f, "e"),
-            Self::SmallE(c) => write!(f, "{}e", c),
-            Self::LargeE(c) if *c == 0 => write!(f, "E"),
-            Self::LargeE(c) => write!(f, "{}E", c),
-            Self::SmallB(c) if *c == 0 => write!(f, "b"),
-            Self::SmallB(c) => write!(f, "{}b", c),
-            Self::LargeB(c) if *c == 0 => write!(f, "B"),
-            Self::LargeB(c) => write!(f, "{}B", c),
-            Self::SmallGe(c) if *c == 0 => write!(f, "ge"),
-            Self::SmallGe(c) => write!(f, "{}ge", c),
-            Self::LargeGe(c) if *c == 0 => write!(f, "gE"),
-            Self::LargeGe(c) => write!(f, "{}gE", c),
+            Self::SmallW => write!(f, "w"),
+            Self::LargeW => write!(f, "W"),
+            Self::SmallE => write!(f, "e"),
+            Self::LargeE => write!(f, "E"),
+            Self::SmallB => write!(f, "b"),
+            Self::LargeB => write!(f, "B"),
+            Self::SmallGe => write!(f, "ge"),
+            Self::LargeGe => write!(f, "gE"),
         }
     }
 }
