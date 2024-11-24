@@ -57,16 +57,13 @@ impl Mode {
     }
 }
 
-/// Vim word motions.
+/// Vim word motions. The enclosed bool is `true` if the motion is a word
+/// motion, otherwise a WORD motion.
 pub enum Motion {
-    SmallW,
-    LargeW,
-    SmallE,
-    LargeE,
-    SmallB,
-    LargeB,
-    SmallGe,
-    LargeGe,
+    W(bool),
+    E(bool),
+    B(bool),
+    Ge(bool),
 }
 
 impl FromStr for Motion {
@@ -74,14 +71,14 @@ impl FromStr for Motion {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "w" => Ok(Self::SmallW),
-            "W" => Ok(Self::LargeW),
-            "e" => Ok(Self::SmallE),
-            "E" => Ok(Self::LargeE),
-            "b" => Ok(Self::SmallB),
-            "B" => Ok(Self::LargeB),
-            "ge" => Ok(Self::SmallGe),
-            "gE" => Ok(Self::LargeGe),
+            "w" => Ok(Self::W(true)),
+            "W" => Ok(Self::W(false)),
+            "e" => Ok(Self::E(true)),
+            "E" => Ok(Self::E(false)),
+            "b" => Ok(Self::B(true)),
+            "B" => Ok(Self::B(false)),
+            "ge" => Ok(Self::Ge(true)),
+            "gE" => Ok(Self::Ge(false)),
             s => Err(ParseMotionError(s.into())),
         }
     }
@@ -99,14 +96,14 @@ impl fmt::Display for ParseMotionError {
 impl fmt::Display for Motion {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::SmallW => write!(f, "w"),
-            Self::LargeW => write!(f, "W"),
-            Self::SmallE => write!(f, "e"),
-            Self::LargeE => write!(f, "E"),
-            Self::SmallB => write!(f, "b"),
-            Self::LargeB => write!(f, "B"),
-            Self::SmallGe => write!(f, "ge"),
-            Self::LargeGe => write!(f, "gE"),
+            Self::W(true) => write!(f, "w"),
+            Self::W(false) => write!(f, "W"),
+            Self::E(true) => write!(f, "e"),
+            Self::E(false) => write!(f, "E"),
+            Self::B(true) => write!(f, "b"),
+            Self::B(false) => write!(f, "B"),
+            Self::Ge(true) => write!(f, "ge"),
+            Self::Ge(false) => write!(f, "gE"),
         }
     }
 }
