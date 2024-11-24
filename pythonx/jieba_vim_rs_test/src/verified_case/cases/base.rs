@@ -7,5 +7,5 @@ use std::path::Path;
 pub trait VerifiableCase: fmt::Display {
     /// Write the test case to a file that can be used by vader.vim. Panics if
     /// the file cannot be written.
-    fn to_vader<P: AsRef<Path>>(&self, path: P);
+    fn to_vader(&self, path: &Path);
 }
