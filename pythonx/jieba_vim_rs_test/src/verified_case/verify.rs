@@ -18,8 +18,8 @@ fn write_group_vader(path: &Path, sub_vader_paths: &[PathBuf]) {
 /// Verify all cases in the given group. Return `Err(log)` if verification
 /// fails.
 pub fn verify_cases<C>(
-    group_name: String,
-    cases: HashMap<String, Vec<C>>,
+    group_name: &str,
+    cases: &HashMap<String, Vec<C>>,
 ) -> Result<(), String>
 where
     C: VerifiableCase + PartialEq + Serialize + DeserializeOwned,
@@ -33,7 +33,7 @@ where
     fs::create_dir(&basedir).ok();
 
     // Create the group directory if not exists.
-    fs::create_dir(basedir.join(&group_name)).ok();
+    fs::create_dir(basedir.join(group_name)).ok();
 
     // Try loading verification results, and record the indices of the verified
     // cases.
