@@ -1,4 +1,4 @@
-use core::fmt;
+use std::fmt;
 use std::path::Path;
 
 /// A test case that can be verified through Vim vader test (see
