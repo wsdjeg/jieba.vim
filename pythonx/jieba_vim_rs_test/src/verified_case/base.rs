@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
 
@@ -136,5 +137,41 @@ pub struct ParseOperatorError(String);
 impl fmt::Display for ParseOperatorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Unsupported operator: `{}`", self.0)
+    }
+}
+
+/// Count of Vim motions. The count is implicitly 1 if the enclosed u32 is 0.
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
+pub struct Count(u32);
+
+impl fmt::Display for Count {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.0 > 0 {
+            write!(f, "{}", self.0)
+        } else {
+            Ok(())
+        }
+    }
+}
+
+impl From<u32> for Count {
+    fn from(value: u32) -> Self {
+        Self(value)
+    }
+}
+
+impl From<Option<u32>> for Count {
+    fn from(value: Option<u32>) -> Self {
+        Self(value.unwrap_or(0))
+    }
+}
+
+impl Count {
+    pub fn explicit(&self) -> u32 {
+        if self.0 == 0 {
+            1
+        } else {
+            self.0
+        }
     }
 }
