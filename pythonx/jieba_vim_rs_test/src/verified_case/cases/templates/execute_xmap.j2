@@ -1,6 +1,6 @@
 Execute:
   call cursor({{ lnum_before }}, {{ col_before }})
-  execute "normal! {{ v }}{{ motion }}" | execute "normal! mx\<Esc>"
+  execute "normal! {{ v }}{{ count }}{{ motion }}" | execute "normal! mx\<Esc>"
   let g:groundtruth_lnum = line("'x")
   let g:groundtruth_col = col("'x")
 
