@@ -142,7 +142,7 @@ impl fmt::Display for ParseOperatorError {
 
 /// Count of Vim motions. The count is implicitly 1 if the enclosed u32 is 0.
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
-pub struct Count(u32);
+pub struct Count(u64);
 
 impl fmt::Display for Count {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -154,20 +154,20 @@ impl fmt::Display for Count {
     }
 }
 
-impl From<u32> for Count {
-    fn from(value: u32) -> Self {
+impl From<u64> for Count {
+    fn from(value: u64) -> Self {
         Self(value)
     }
 }
 
-impl From<Option<u32>> for Count {
-    fn from(value: Option<u32>) -> Self {
+impl From<Option<u64>> for Count {
+    fn from(value: Option<u64>) -> Self {
         Self(value.unwrap_or(0))
     }
 }
 
 impl Count {
-    pub fn explicit(&self) -> u32 {
+    pub fn explicit(&self) -> u64 {
         if self.0 == 0 {
             1
         } else {

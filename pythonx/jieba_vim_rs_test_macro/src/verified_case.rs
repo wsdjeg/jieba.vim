@@ -72,7 +72,7 @@ impl Parse for NamedVerifiedCase {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut name: Option<String> = None;
         let mut buffer: Option<Vec<String>> = None;
-        let mut count: Option<u32> = None;
+        let mut count: Option<u64> = None;
         let mut d_special = false;
 
         let pairs = input.parse_terminated(Meta::parse, Token![,])?;
