@@ -10,20 +10,31 @@ use once_cell::sync::Lazy;
 
 static TEMPLATES: Lazy<Environment> = Lazy::new(|| {
     let mut env = Environment::new();
-    env.add_template("execute_nmap", "templates/execute_nmap.j2")
+    env.add_template("execute_nmap", include_str!("templates/execute_nmap.j2"))
         .unwrap();
-    env.add_template("execute_omap_c", "templates/execute_omap_c.j2")
+    env.add_template(
+        "execute_omap_c",
+        include_str!("templates/execute_omap_c.j2"),
+    )
+    .unwrap();
+    env.add_template(
+        "execute_omap_d",
+        include_str!("templates/execute_omap_d.j2"),
+    )
+    .unwrap();
+    env.add_template(
+        "execute_omap_y",
+        include_str!("templates/execute_omap_y.j2"),
+    )
+    .unwrap();
+    env.add_template("execute_xmap", include_str!("templates/execute_xmap.j2"))
         .unwrap();
-    env.add_template("execute_omap_d", "templates/execute_omap_d.j2")
+    env.add_template("include", include_str!("templates/include.j2"))
         .unwrap();
-    env.add_template("execute_omap_y", "templates/execute_omap_y.j2")
+    env.add_template("setup_omap", include_str!("templates/setup_omap.j2"))
         .unwrap();
-    env.add_template("execute_xmap", "templates/execute_xmap.j2")
+    env.add_template("setup", include_str!("templates/setup.j2"))
         .unwrap();
-    env.add_template("include", "templates/include.j2").unwrap();
-    env.add_template("setup_omap", "templates/setup_omap.j2")
-        .unwrap();
-    env.add_template("setup", "templates/setup.j2").unwrap();
 
     env
 });
