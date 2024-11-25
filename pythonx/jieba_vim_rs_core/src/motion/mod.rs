@@ -49,6 +49,21 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 }
 
 #[cfg(test)]
+static WORD_MOTION: once_cell::sync::Lazy<WordMotion<jieba_rs::Jieba>> =
+    once_cell::sync::Lazy::new(|| WordMotion::new(jieba_rs::Jieba::new()));
+
+#[cfg(test)]
+impl<C> WordMotion<C> {
+    fn _noop(&self) {}
+}
+
+#[cfg(test)]
+#[ctor::ctor]
+fn init_word_motion() {
+    WORD_MOTION._noop(); // force initialization
+}
+
+#[cfg(test)]
 impl BufferLike for Vec<&'static str> {
     type Error = ();
 
