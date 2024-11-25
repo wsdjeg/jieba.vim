@@ -195,7 +195,7 @@ mod tests {
                         let bc = output.before_cursor_position;
                         let ac = output.after_cursor_position;
                         let timing = AssertElapsed::tic(50);
-                        let (r, is_d_special) = motion.test_omap_d_e_special(&output.stripped_buffer, (bc.lnum, bc.col), $count, false).unwrap();
+                        let (r, is_d_special) = motion.omap_d_e(&output.stripped_buffer, (bc.lnum, bc.col), $count, false).unwrap();
                         timing.toc();
 
                         let _output = VerifiedCaseInput::new(

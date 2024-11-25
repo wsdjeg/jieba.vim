@@ -1,0 +1,11 @@
+Before:
+  function! VeCursor(lnum, col)
+    set virtualedit=onemore
+    call cursor(a:lnum, a:col)
+  endfunction
+
+Given:
+{%- for line in buffer %}
+  {{ line }}
+{%- endfor %}
+

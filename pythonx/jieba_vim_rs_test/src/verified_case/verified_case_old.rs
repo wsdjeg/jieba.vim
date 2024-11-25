@@ -209,6 +209,7 @@ Before:
                         tofile,
                         r#"
 Execute:
+  1,$y a
   call cursor({lnum_before}, {col_before})
   let @b = ""
   let @x = ""
@@ -219,7 +220,7 @@ Execute:
   1,$y b
   let g:groundtruth_buffer = @b
 
-  silent! normal! u
+  normal! ggVG"ap
   let @b = ""
   let @x = ""
   call cursor({lnum_before}, {col_before})
@@ -244,6 +245,7 @@ Before:
                         tofile,
                         r#"
 Execute:
+  1,$y a
   call cursor({lnum_before}, {col_before})
   let @b = ""
   normal! {operator}{motion}XXX
@@ -252,7 +254,7 @@ Execute:
   1,$y b
   let g:groundtruth_buffer = @b
 
-  silent! normal! u
+  normal! ggVG"ap
   let @b = ""
   call cursor({lnum_before}, {col_before})
   execute "normal! {operator}{o_v}:call VeCursor({lnum_after}, {col_after})\<cr>XXX"
@@ -276,6 +278,7 @@ Before:
                         tofile,
                         r#"
 Execute:
+  1,$y a
   call cursor({lnum_before}, {col_before})
   let @b = ""
   normal! {operator}{motion}
@@ -284,7 +287,7 @@ Execute:
   1,$y b
   let g:groundtruth_buffer = @b
 
-  silent! normal! u
+  normal! ggVG"ap
   let @b = ""
   call cursor({lnum_before}, {col_before})
   execute "normal! {operator}{o_v}:call VeCursor({lnum_after}, {col_after})\<cr>"
