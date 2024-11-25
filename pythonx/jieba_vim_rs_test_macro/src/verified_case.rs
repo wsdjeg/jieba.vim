@@ -1,6 +1,6 @@
 use jieba_vim_rs_test::verified_case::cases::{
     NmapECase, NmapWCase, OmapCECase, OmapCWCase, OmapDECase, OmapDWCase,
-    OmapYECase, OmapYWCase,
+    OmapYECase, OmapYWCase, XmapWCase,
 };
 use jieba_vim_rs_test::verified_case::{
     verify_cases, Count, Mode, Motion, Operator,
@@ -424,6 +424,18 @@ impl VerifiedCases {
                     )
                 }))
             }
+            (Mode::Visual(kind), Operator::NoOp, Motion::W(word)) => {
+                let cases = clone_cases_as(&self.cases, |c| {
+                    XmapWCase::new(c.buffer.clone(), c.count, *word, *kind)
+                        .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_xmap_w_assertion(case_name, case_id, case, *word)
+                }))
+            }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
     }
@@ -729,6 +741,41 @@ impl VerifiedCases {
                 let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
                 let timing = AssertElapsed::tic(#timeout);
                 let (lnum_after_pred, col_after_pred) = #backend_path.omap_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
+                timing.toc();
+                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
+            }
+        }
+    }
+
+    fn write_xmap_w_assertion(
+        &self,
+        case_name: &str,
+        case_id: usize,
+        case: &XmapWCase,
+        word: bool,
+    ) -> TokenStream {
+        let test_name: Ident =
+            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
+        let backend_path = &self.backend_path;
+        let buffer_type = &self.buffer_type;
+        let timeout = self.timeout;
+
+        let lnum_before = case.lnum_before;
+        let lnum_after = case.lnum_after;
+        let col_before = case.col_before;
+        let col_after = case.col_after;
+        let buffer = &case.buffer;
+        let count = case.count.explicit();
+        let case_desc = case.to_string();
+
+        quote! {
+            #[test]
+            fn #test_name() {
+                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
+
+                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
+                let timing = AssertElapsed::tic(#timeout);
+                let (lnum_after_pred, col_after_pred) = #backend_path.xmap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
                 timing.toc();
                 assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
             }
