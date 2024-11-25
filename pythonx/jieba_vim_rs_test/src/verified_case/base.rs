@@ -5,10 +5,15 @@ use std::str::FromStr;
 /// Vim modes.
 pub enum Mode {
     Normal,
-    VisualChar,
-    VisualLine,
-    VisualBlock,
+    Visual(VisualModeKind),
     Operator,
+}
+
+#[derive(PartialEq, Clone, Copy, Serialize, Deserialize)]
+pub enum VisualModeKind {
+    Char,
+    Line,
+    Block,
 }
 
 impl FromStr for Mode {
@@ -17,9 +22,9 @@ impl FromStr for Mode {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             "n" => Ok(Self::Normal),
-            "c" | "xc" => Ok(Self::VisualChar),
-            "l" | "xl" => Ok(Self::VisualLine),
-            "b" | "xb" => Ok(Self::VisualBlock),
+            "c" | "xc" => Ok(Self::Visual(VisualModeKind::Char)),
+            "l" | "xl" => Ok(Self::Visual(VisualModeKind::Line)),
+            "b" | "xb" => Ok(Self::Visual(VisualModeKind::Block)),
             "o" => Ok(Self::Operator),
             s => Err(ParseModeError(s.into())),
         }
@@ -39,10 +44,20 @@ impl fmt::Display for Mode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Normal => write!(f, "n"),
-            Self::VisualChar => write!(f, "xc"),
-            Self::VisualLine => write!(f, "xl"),
-            Self::VisualBlock => write!(f, "xb"),
+            Self::Visual(VisualModeKind::Char) => write!(f, "xc"),
+            Self::Visual(VisualModeKind::Line) => write!(f, "xl"),
+            Self::Visual(VisualModeKind::Block) => write!(f, "xb"),
             Self::Operator => write!(f, "o"),
+        }
+    }
+}
+
+impl VisualModeKind {
+    pub fn visual_prefix(&self) -> &'static str {
+        match self {
+            VisualModeKind::Char => "v",
+            VisualModeKind::Line => "V",
+            VisualModeKind::Block => r"\<C-v>",
         }
     }
 }
@@ -50,9 +65,7 @@ impl fmt::Display for Mode {
 impl Mode {
     pub fn visual_prefix(&self) -> Option<&'static str> {
         match self {
-            Self::VisualChar => Some("v"),
-            Self::VisualLine => Some("V"),
-            Self::VisualBlock => Some(r"\<C-v>"),
+            Self::Visual(vk) => Some(vk.visual_prefix()),
             _ => None,
         }
     }
