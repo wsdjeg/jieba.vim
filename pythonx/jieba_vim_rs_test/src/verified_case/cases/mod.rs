@@ -1,4 +1,5 @@
 mod base;
+mod nmap_b;
 mod nmap_e;
 mod nmap_w;
 mod omap_c_e;
@@ -12,6 +13,7 @@ mod xmap_e;
 mod xmap_w;
 
 pub use base::VerifiableCase;
+pub use nmap_b::NmapBCase;
 pub use nmap_e::NmapECase;
 pub use nmap_w::NmapWCase;
 pub use omap_c_e::OmapCECase;
