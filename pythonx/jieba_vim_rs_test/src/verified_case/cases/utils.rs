@@ -8,3 +8,7 @@ pub fn display_buffer(buffer: &[String]) -> String {
     }
     out
 }
+
+pub fn to_vim_col(col: usize) -> usize {
+    col + 1
+}

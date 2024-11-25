@@ -43,9 +43,9 @@ impl VerifiableCase for NmapWCase {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
         let lnum_before = self.lnum_before;
-        let col_before = self.col_before;
+        let col_before = utils::to_vim_col(self.col_before);
         let lnum_after = self.lnum_after;
-        let col_after = self.col_after;
+        let col_after = utils::to_vim_col(self.col_after);
         let count = self.count.to_string();
         let motion = if self.word { "w" } else { "W" };
 
