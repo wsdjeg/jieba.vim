@@ -90,7 +90,7 @@ impl fmt::Display for OmapDECase {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
-        out.push_str("\nExpected motion:");
+        out.push_str("\nExpected motion: ");
         out.push_str(&format!(
             "({}, {}) -d{}{}-> ({}, {})\n",
             self.lnum_before,
