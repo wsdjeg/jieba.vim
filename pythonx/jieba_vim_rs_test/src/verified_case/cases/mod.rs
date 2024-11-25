@@ -1,8 +1,10 @@
 mod base;
+mod nmap_e;
 mod nmap_w;
 mod utils;
 
 pub use base::VerifiableCase;
+pub use nmap_e::NmapECase;
 pub use nmap_w::NmapWCase;
 
 use minijinja::Environment;
