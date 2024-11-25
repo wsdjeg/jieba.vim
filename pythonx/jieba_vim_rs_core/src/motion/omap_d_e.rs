@@ -138,6 +138,8 @@ mod tests {
     #[vcase(name = "newline_one_word", buffer = ["{", "", "abc}d"], d_special)]
     #[vcase(name = "newline_one_word", buffer = ["{", "  ", "abc}d"], d_special)]
     #[vcase(name = "newline_two_words", buffer = ["{", "", "abc}d", "efg"], d_special)]
+    #[vcase(name = "newline_one_word_space", buffer = ["{", "", "abc}d    "], d_special)]
+    #[vcase(name = "newline_one_word_space_word", buffer = ["{", "", "abc}d    e"])]
     #[vcase(name = "word_newline_newline", buffer = ["abcd", "{   ", "  } "], d_special)]
     #[vcase(name = "word_newline_newline", buffer = ["abcd", "{   ", "  } "], count = 2, d_special)]
     #[vcase(name = "one_word_space_newline", buffer = ["a{bc}d    ", ""])]
