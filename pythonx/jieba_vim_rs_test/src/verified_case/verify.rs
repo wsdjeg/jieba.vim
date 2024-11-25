@@ -95,12 +95,13 @@ where
     );
 
     // Run the tests.
-    let mut proc = Command::new("vim")
+    let proc = Command::new("vim")
         .args(&[
             "-N",
             "-u",
             "vimrc",
-            &format!("+:Vader! {}", group_path.to_str().unwrap()),
+            "-c",
+            &format!("silent Vader! {}", group_path.to_str().unwrap()),
         ])
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
@@ -108,13 +109,6 @@ where
         .current_dir(&basedir)
         .spawn()
         .unwrap();
-    {
-        // Send `q` to vim to quit its error messasge pager.
-        let stdin = proc.stdin.as_mut().expect("Failed to open stdin to vim");
-        stdin
-            .write_all("q".as_bytes())
-            .expect("Failed to send `q` to vim");
-    }
     let proc_out = proc.wait_with_output().unwrap();
     if proc_out.status.success() {
         // Write cache to disk to indicate verification success.
