@@ -36,6 +36,14 @@ impl NmapWCase {
             word,
         })
     }
+
+    fn motion_str(&self) -> &'static str {
+        if self.word {
+            "w"
+        } else {
+            "W"
+        }
+    }
 }
 
 impl VerifiableCase for NmapWCase {
@@ -47,7 +55,7 @@ impl VerifiableCase for NmapWCase {
         let lnum_after = self.lnum_after;
         let col_after = utils::to_vim_col(self.col_after);
         let count = self.count.to_string();
-        let motion = if self.word { "w" } else { "W" };
+        let motion = self.motion_str();
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
@@ -82,7 +90,7 @@ impl fmt::Display for NmapWCase {
             self.lnum_before,
             self.col_before,
             self.count.to_string(),
-            if self.word { "w" } else { "W" },
+            self.motion_str(),
             self.lnum_after,
             self.col_after
         ));
