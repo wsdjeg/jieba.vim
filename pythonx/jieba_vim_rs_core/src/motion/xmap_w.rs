@@ -41,7 +41,7 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         &self,
         buffer: &B,
         cursor_pos: (usize, usize),
-        mut count: usize,
+        mut count: u64,
         word: bool,
     ) -> Result<(usize, usize), B::Error> {
         let (mut lnum, mut col) = cursor_pos;
@@ -72,220 +72,133 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
 
 #[cfg(test)]
 mod tests {
-    use super::super::WordMotion;
-    use jieba_rs::Jieba;
-    use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-    use jieba_vim_rs_test::verified_case::{
-        Error, Mode, Motion, VerifiedCaseInput,
-    };
-    use once_cell::sync::OnceCell;
+    #[cfg(feature = "verifiable_case")]
+    use jieba_vim_rs_test_macro::verified_cases;
+    #[cfg(not(feature = "verifiable_case"))]
+    use jieba_vim_rs_test_macro::verified_cases_dry_run as verified_cases;
 
-    static WORD_MOTION: OnceCell<WordMotion<Jieba>> = OnceCell::new();
+    #[verified_cases(
+        mode = "xc",
+        motion = "w",
+        timeout = 50,
+        backend_path = "crate::motion::WORD_MOTION"
+    )]
+    #[vcase(name = "empty", buffer = ["{}"])]
+    #[vcase(name = "space", buffer = ["{ }"])]
+    #[vcase(name = "space", buffer = ["{     }"])]
+    #[vcase(name = "one_word", buffer = ["aaa{a}"])]
+    #[vcase(name = "one_word", buffer = ["a{aaa}"])]
+    #[vcase(name = "one_word", buffer = ["a{aaa}"], count = 2)]
+    #[vcase(name = "one_word_space", buffer = ["a{aaa    }"])]
+    #[vcase(name = "one_word_space", buffer = ["aaa{a    }"])]
+    #[vcase(name = "one_word_space", buffer = ["aaaa {   }"])]
+    #[vcase(name = "space_one_word", buffer = ["{    }aaaa"])]
+    #[vcase(name = "space_one_word", buffer = ["{    aaaa}"], count = 2)]
+    #[vcase(name = "space_one_word", buffer = ["   { }aaaa"])]
+    #[vcase(name = "space_one_word", buffer = ["    {aaaa}"])]
+    #[vcase(name = "two_words", buffer = ["a{aaa  }aaa"])]
+    #[vcase(name = "two_words", buffer = ["a{aaa  aaa}"], count = 2)]
+    #[vcase(name = "space_one_word_space", buffer = ["    {aaaa   }"])]
+    #[vcase(name = "space_one_word_space", buffer = [" {   }aaaa   "])]
+    #[vcase(name = "space_one_word_space", buffer = [" {   aaaa   }"], count = 2)]
+    #[vcase(name = "one_word_newline", buffer = ["a{aaa", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["a{aaa    ", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["aaaa{    ", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["aaaa {   ", "}"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aaa", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aaa", "  ", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["aaaa", "{  ", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aa", "}", "   "])]
+    #[vcase(name = "one_word_newline_space_newline", buffer = ["a{aaa", " ", "}"])]
+    #[vcase(name = "one_word_newline_space_newline", buffer = ["a{aaa", " ", " ", "}", "  "])]
+    #[vcase(name = "one_word_newline_space_word", buffer = ["a{aaa", " ", " ", "}aaa"])]
+    #[vcase(name = "one_word_newline_space_word", buffer = ["a{aaa", " ", " ", "   }aaa"])]
+    #[vcase(name = "large_unnecessary_count", buffer = ["{}"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["a{aa aaaa}"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["aaa {aaaa}"], count = 10293949403)]
+    mod motion_xcmap_w {}
 
-    #[ctor::ctor]
-    fn init() {
-        WORD_MOTION.get_or_init(|| WordMotion::new(Jieba::new()));
-    }
+    // Copied from xcmap_w above.
+    #[verified_cases(
+        mode = "xl",
+        motion = "w",
+        timeout = 50,
+        backend_path = "crate::motion::WORD_MOTION"
+    )]
+    #[vcase(name = "empty", buffer = ["{}"])]
+    #[vcase(name = "space", buffer = ["{ }"])]
+    #[vcase(name = "space", buffer = ["{     }"])]
+    #[vcase(name = "one_word", buffer = ["aaa{a}"])]
+    #[vcase(name = "one_word", buffer = ["a{aaa}"])]
+    #[vcase(name = "one_word", buffer = ["a{aaa}"], count = 2)]
+    #[vcase(name = "one_word_space", buffer = ["a{aaa    }"])]
+    #[vcase(name = "one_word_space", buffer = ["aaa{a    }"])]
+    #[vcase(name = "one_word_space", buffer = ["aaaa {   }"])]
+    #[vcase(name = "space_one_word", buffer = ["{    }aaaa"])]
+    #[vcase(name = "space_one_word", buffer = ["{    aaaa}"], count = 2)]
+    #[vcase(name = "space_one_word", buffer = ["   { }aaaa"])]
+    #[vcase(name = "space_one_word", buffer = ["    {aaaa}"])]
+    #[vcase(name = "two_words", buffer = ["a{aaa  }aaa"])]
+    #[vcase(name = "two_words", buffer = ["a{aaa  aaa}"], count = 2)]
+    #[vcase(name = "space_one_word_space", buffer = ["    {aaaa   }"])]
+    #[vcase(name = "space_one_word_space", buffer = [" {   }aaaa   "])]
+    #[vcase(name = "space_one_word_space", buffer = [" {   aaaa   }"], count = 2)]
+    #[vcase(name = "one_word_newline", buffer = ["a{aaa", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["a{aaa    ", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["aaaa{    ", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["aaaa {   ", "}"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aaa", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aaa", "  ", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["aaaa", "{  ", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aa", "}", "   "])]
+    #[vcase(name = "one_word_newline_space_newline", buffer = ["a{aaa", " ", "}"])]
+    #[vcase(name = "one_word_newline_space_newline", buffer = ["a{aaa", " ", " ", "}", "  "])]
+    #[vcase(name = "one_word_newline_space_word", buffer = ["a{aaa", " ", " ", "}aaa"])]
+    #[vcase(name = "one_word_newline_space_word", buffer = ["a{aaa", " ", " ", "   }aaa"])]
+    #[vcase(name = "large_unnecessary_count", buffer = ["{}"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["a{aa aaaa}"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["aaa {aaaa}"], count = 10293949403)]
+    mod motion_xlmap_w {}
 
-    macro_rules! word_motion_tests {
-        (
-            $test_name:ident (word):
-            $(
-                ($index:literal) [$($buffer_item:literal),*], $count:literal
-            );* $(;)?
-        ) => {
-            $(
-                paste::paste! {
-                    #[test]
-                    #[serial_test::serial]
-                    fn [<$test_name _word_ $index>]() -> Result<(), Error> {
-                        let motion = WORD_MOTION.get().unwrap();
-                        let output = VerifiedCaseInput::new(
-                            "motion_xmap_w".into(),
-                            stringify!([<$test_name _xc_word_ $index>]).into(),
-                            vec![$($buffer_item.into()),*],
-                            Mode::VisualChar,
-                            "".into(),
-                            Motion::SmallW($count),
-                            false,
-                            false,
-                        )?.verify_case()?;
-                        let bc = output.before_cursor_position;
-                        let ac = output.after_cursor_position;
-                        let timing = AssertElapsed::tic(50);
-                        let r = motion.xmap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
-                        timing.toc();
-                        assert_eq!(r, Ok((ac.lnum, ac.col)));
-
-                        let output = VerifiedCaseInput::new(
-                            "motion_xmap_w".into(),
-                            stringify!([<$test_name _xl_word_ $index>]).into(),
-                            vec![$($buffer_item.into()),*],
-                            Mode::VisualLine,
-                            "".into(),
-                            Motion::SmallW($count),
-                            false,
-                            false,
-                        )?.verify_case()?;
-                        let bc = output.before_cursor_position;
-                        let ac = output.after_cursor_position;
-                        let timing = AssertElapsed::tic(50);
-                        let r = motion.xmap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
-                        timing.toc();
-                        assert_eq!(r, Ok((ac.lnum, ac.col)));
-
-                        let output = VerifiedCaseInput::new(
-                            "motion_xmap_w".into(),
-                            stringify!([<$test_name _xb_word_ $index>]).into(),
-                            vec![$($buffer_item.into()),*],
-                            Mode::VisualBlock,
-                            "".into(),
-                            Motion::SmallW($count),
-                            false,
-                            false,
-                        )?.verify_case()?;
-                        let bc = output.before_cursor_position;
-                        let ac = output.after_cursor_position;
-                        let timing = AssertElapsed::tic(50);
-                        let r = motion.xmap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, true);
-                        timing.toc();
-                        assert_eq!(r, Ok((ac.lnum, ac.col)));
-
-                        Ok(())
-                    }
-                }
-            )*
-        };
-        (
-            $test_name:ident (WORD):
-            $(
-                ($index:literal) [$($buffer_item:literal),*], $count:literal
-            );* $(;)?
-        ) => {
-            $(
-                paste::paste! {
-                    #[test]
-                    #[serial_test::serial]
-                    fn [<$test_name _WORD_ $index>]() -> Result<(), Error> {
-                        let motion = WORD_MOTION.get().unwrap();
-                        let output = VerifiedCaseInput::new(
-                            "motion_xmap_w".into(),
-                            stringify!([<$test_name _xc_WORD_ $index>]).into(),
-                            vec![$($buffer_item.into()),*],
-                            Mode::VisualChar,
-                            "".into(),
-                            Motion::LargeW($count),
-                            false,
-                            false,
-                        )?.verify_case()?;
-                        let bc = output.before_cursor_position;
-                        let ac = output.after_cursor_position;
-                        let timing = AssertElapsed::tic(50);
-                        let r = motion.xmap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
-                        timing.toc();
-                        assert_eq!(r, Ok((ac.lnum, ac.col)));
-
-                        let output = VerifiedCaseInput::new(
-                            "motion_xmap_w".into(),
-                            stringify!([<$test_name _xl_WORD_ $index>]).into(),
-                            vec![$($buffer_item.into()),*],
-                            Mode::VisualLine,
-                            "".into(),
-                            Motion::LargeW($count),
-                            false,
-                            false,
-                        )?.verify_case()?;
-                        let bc = output.before_cursor_position;
-                        let ac = output.after_cursor_position;
-                        let timing = AssertElapsed::tic(50);
-                        let r = motion.xmap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
-                        timing.toc();
-                        assert_eq!(r, Ok((ac.lnum, ac.col)));
-
-                        let output = VerifiedCaseInput::new(
-                            "motion_xmap_w".into(),
-                            stringify!([<$test_name _xb_WORD_ $index>]).into(),
-                            vec![$($buffer_item.into()),*],
-                            Mode::VisualBlock,
-                            "".into(),
-                            Motion::LargeW($count),
-                            false,
-                            false,
-                        )?.verify_case()?;
-                        let bc = output.before_cursor_position;
-                        let ac = output.after_cursor_position;
-                        let timing = AssertElapsed::tic(50);
-                        let r = motion.xmap_w(&output.stripped_buffer, (bc.lnum, bc.col), $count, false);
-                        timing.toc();
-                        assert_eq!(r, Ok((ac.lnum, ac.col)));
-
-                        Ok(())
-                    }
-                }
-            )*
-        };
-    }
-
-    word_motion_tests!(
-        test_empty (word):
-        (1) ["{}"], 1;
-    );
-
-    word_motion_tests!(
-        test_space (word):
-        (1) ["{ }"], 1;
-        (2) ["{     }"], 1;
-    );
-
-    word_motion_tests!(
-        test_one_word (word):
-        (1) ["aaa{a}"], 1;
-        (2) ["a{aaa}"], 1;
-        (3) ["a{aaa}"], 2;
-    );
-
-    word_motion_tests!(
-        test_one_word_space (word):
-        (1) ["a{aaa    }"], 1;
-        (2) ["aaa{a    }"], 1;
-        (3) ["aaaa {   }"], 1;
-    );
-
-    word_motion_tests!(
-        test_two_words (word):
-        (1) ["a{aaa  }aaa"], 1;
-        (2) ["a{aaa  aaa}"], 2;
-    );
-
-    word_motion_tests!(
-        test_one_word_newline (word):
-        (1) ["a{aaa", "}"], 1;
-    );
-
-    word_motion_tests!(
-        test_one_word_space_newline (word):
-        (1) ["a{aaa    ", "}"], 1;
-        (2) ["aaaa{    ", "}"], 1;
-        (3) ["aaaa {   ", "}"], 1;
-    );
-
-    word_motion_tests!(
-        test_one_word_newline_space (word):
-        (1) ["a{aaa", "    }"], 1;
-        (2) ["a{aaa", "  ", "    }"], 1;
-        (3) ["aaaa", "{  ", "    }"], 1;
-        (4) ["a{aa", "}", "   "], 1;
-    );
-
-    word_motion_tests!(
-        test_one_word_newline_space_newline (word):
-        (1) ["a{aaa", " ", "}"], 1;
-        (2) ["a{aaa", " ", " ", "}", "  "], 1;
-    );
-
-    word_motion_tests!(
-        test_one_word_newline_space_word (word):
-        (1) ["a{aaa", " ", " ", "}aaa"], 1;
-        (2) ["a{aaa", " ", " ", "   }aaa"], 1;
-    );
+    // Copied from xcmap_w above.
+    #[verified_cases(
+        mode = "xb",
+        motion = "w",
+        timeout = 50,
+        backend_path = "crate::motion::WORD_MOTION"
+    )]
+    #[vcase(name = "empty", buffer = ["{}"])]
+    #[vcase(name = "space", buffer = ["{ }"])]
+    #[vcase(name = "space", buffer = ["{     }"])]
+    #[vcase(name = "one_word", buffer = ["aaa{a}"])]
+    #[vcase(name = "one_word", buffer = ["a{aaa}"])]
+    #[vcase(name = "one_word", buffer = ["a{aaa}"], count = 2)]
+    #[vcase(name = "one_word_space", buffer = ["a{aaa    }"])]
+    #[vcase(name = "one_word_space", buffer = ["aaa{a    }"])]
+    #[vcase(name = "one_word_space", buffer = ["aaaa {   }"])]
+    #[vcase(name = "space_one_word", buffer = ["{    }aaaa"])]
+    #[vcase(name = "space_one_word", buffer = ["{    aaaa}"], count = 2)]
+    #[vcase(name = "space_one_word", buffer = ["   { }aaaa"])]
+    #[vcase(name = "space_one_word", buffer = ["    {aaaa}"])]
+    #[vcase(name = "two_words", buffer = ["a{aaa  }aaa"])]
+    #[vcase(name = "two_words", buffer = ["a{aaa  aaa}"], count = 2)]
+    #[vcase(name = "space_one_word_space", buffer = ["    {aaaa   }"])]
+    #[vcase(name = "space_one_word_space", buffer = [" {   }aaaa   "])]
+    #[vcase(name = "space_one_word_space", buffer = [" {   aaaa   }"], count = 2)]
+    #[vcase(name = "one_word_newline", buffer = ["a{aaa", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["a{aaa    ", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["aaaa{    ", "}"])]
+    #[vcase(name = "one_word_space_newline", buffer = ["aaaa {   ", "}"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aaa", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aaa", "  ", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["aaaa", "{  ", "    }"])]
+    #[vcase(name = "one_word_newline_space", buffer = ["a{aa", "}", "   "])]
+    #[vcase(name = "one_word_newline_space_newline", buffer = ["a{aaa", " ", "}"])]
+    #[vcase(name = "one_word_newline_space_newline", buffer = ["a{aaa", " ", " ", "}", "  "])]
+    #[vcase(name = "one_word_newline_space_word", buffer = ["a{aaa", " ", " ", "}aaa"])]
+    #[vcase(name = "one_word_newline_space_word", buffer = ["a{aaa", " ", " ", "   }aaa"])]
+    #[vcase(name = "large_unnecessary_count", buffer = ["{}"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["a{aa aaaa}"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["aaa {aaaa}"], count = 10293949403)]
+    mod motion_xbmap_w {}
 }
