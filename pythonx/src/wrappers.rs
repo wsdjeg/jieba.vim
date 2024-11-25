@@ -104,7 +104,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -115,7 +115,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -125,7 +125,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -136,7 +136,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -147,7 +147,7 @@ impl WordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         if operator == "c" {
             self.wm
@@ -164,7 +164,7 @@ impl WordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         if operator == "c" {
             self.wm
@@ -179,7 +179,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_e(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -190,7 +190,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -200,7 +200,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_e(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -211,7 +211,7 @@ impl WordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -222,7 +222,7 @@ impl WordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<((usize, usize), bool)> {
         if operator == "d" {
             self.wm
@@ -244,7 +244,7 @@ impl WordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<((usize, usize), bool)> {
         if operator == "d" {
             self.wm
@@ -346,7 +346,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -357,7 +357,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -367,7 +367,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_w(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -378,7 +378,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_w(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -389,7 +389,7 @@ impl LazyWordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         if operator == "c" {
             self.wm
@@ -406,7 +406,7 @@ impl LazyWordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         if operator == "c" {
             self.wm
@@ -421,7 +421,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_e(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -432,7 +432,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .nmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -442,7 +442,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_e(&BoundWrapper(buffer), cursor_pos, count, true)
@@ -453,7 +453,7 @@ impl LazyWordMotionWrapper {
         &self,
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
-        count: usize,
+        count: u64,
     ) -> PyResult<(usize, usize)> {
         self.wm
             .xmap_e(&BoundWrapper(buffer), cursor_pos, count, false)
@@ -464,7 +464,7 @@ impl LazyWordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<((usize, usize), bool)> {
         if operator == "d" {
             self.wm
@@ -486,7 +486,7 @@ impl LazyWordMotionWrapper {
         buffer: &Bound<'_, PyAny>,
         cursor_pos: (usize, usize),
         operator: &str,
-        count: usize,
+        count: u64,
     ) -> PyResult<((usize, usize), bool)> {
         if operator == "d" {
             self.wm
