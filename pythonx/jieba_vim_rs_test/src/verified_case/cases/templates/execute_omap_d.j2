@@ -4,7 +4,7 @@ Execute:
   1,$y a
   call cursor({{ lnum_before }}, {{ col_before }})
   let @b = ""
-  normal! {{ operator }}{{ motion }}
+  normal! {{ operator }}{{ count }}{{ motion }}
   let g:groundtruth_lnum = line(".")
   let g:groundtruth_col = col(".")
   1,$y b

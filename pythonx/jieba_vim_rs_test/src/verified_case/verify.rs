@@ -6,7 +6,7 @@ use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 fn write_group_vader<I: IntoIterator<Item = P>, P: AsRef<Path>>(
     path: &Path,
@@ -95,16 +95,21 @@ where
     );
 
     // Run the tests.
-    let proc_out = Command::new("vim")
+    let proc = Command::new("vim")
         .args(&[
             "-N",
             "-u",
             "vimrc",
-            &format!("+:Vader! {}", group_path.to_str().unwrap()),
+            "-c",
+            &format!("silent Vader! {}", group_path.to_str().unwrap()),
         ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
         .current_dir(&basedir)
-        .output()
+        .spawn()
         .unwrap();
+    let proc_out = proc.wait_with_output().unwrap();
     if proc_out.status.success() {
         // Write cache to disk to indicate verification success.
         for (case_name, sub_cases) in cases.iter() {

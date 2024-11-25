@@ -8,7 +8,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(PartialEq, Serialize, Deserialize)]
-pub struct NmapWCase {
+pub struct OmapDECase {
     pub lnum_before: usize,
     pub col_before: usize,
     pub lnum_after: usize,
@@ -16,14 +16,16 @@ pub struct NmapWCase {
     pub buffer: Vec<String>,
     pub count: Count,
     pub word: bool,
+    pub d_special: bool,
 }
 
-impl NmapWCase {
+impl OmapDECase {
     /// Create a new case. `count` equals 0 means 1 but without explicit count.
     pub fn new<C: Into<Count>>(
         marked_buffer: Vec<String>,
         count: C,
         word: bool,
+        d_special: bool,
     ) -> Result<Self, cursor_marker::Error> {
         let output = CursorMarker.strip_markers(marked_buffer)?;
         Ok(Self {
@@ -34,19 +36,20 @@ impl NmapWCase {
             buffer: output.stripped_buffer,
             count: count.into(),
             word,
+            d_special,
         })
     }
 
     fn motion_str(&self) -> &'static str {
         if self.word {
-            "w"
+            "e"
         } else {
-            "W"
+            "E"
         }
     }
 }
 
-impl VerifiableCase for NmapWCase {
+impl VerifiableCase for OmapDECase {
     fn to_vader(&self, path: &Path) {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
@@ -56,10 +59,11 @@ impl VerifiableCase for NmapWCase {
         let col_after = utils::to_vim_col(self.col_after);
         let count = self.count.to_string();
         let motion = self.motion_str();
+        let d_special = self.d_special;
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
-            .get_template("setup")
+            .get_template("setup_omap")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
@@ -70,23 +74,25 @@ impl VerifiableCase for NmapWCase {
             col_after,
             count,
             motion,
+            o_v => true,
+            d_special,
         );
         TEMPLATES
-            .get_template("execute_nmap")
+            .get_template("execute_omap_d")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
     }
 }
 
-impl fmt::Display for NmapWCase {
+impl fmt::Display for OmapDECase {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
         out.push_str("\nExpected motion:");
         out.push_str(&format!(
-            "({}, {}) -{}{}-> ({}, {})\n",
+            "({}, {}) -d{}{}-> ({}, {})\n",
             self.lnum_before,
             self.col_before,
             self.count.to_string(),
@@ -94,6 +100,11 @@ impl fmt::Display for NmapWCase {
             self.lnum_after,
             self.col_after
         ));
+        if self.d_special {
+            out.push_str("\nd-special on\n");
+        } else {
+            out.push_str("\nd-special off\n");
+        }
         write!(f, "{}", out)
     }
 }

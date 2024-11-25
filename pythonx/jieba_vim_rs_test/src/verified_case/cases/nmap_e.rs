@@ -8,7 +8,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(PartialEq, Serialize, Deserialize)]
-pub struct NmapWCase {
+pub struct NmapECase {
     pub lnum_before: usize,
     pub col_before: usize,
     pub lnum_after: usize,
@@ -18,7 +18,7 @@ pub struct NmapWCase {
     pub word: bool,
 }
 
-impl NmapWCase {
+impl NmapECase {
     /// Create a new case. `count` equals 0 means 1 but without explicit count.
     pub fn new<C: Into<Count>>(
         marked_buffer: Vec<String>,
@@ -39,14 +39,14 @@ impl NmapWCase {
 
     fn motion_str(&self) -> &'static str {
         if self.word {
-            "w"
+            "e"
         } else {
-            "W"
+            "E"
         }
     }
 }
 
-impl VerifiableCase for NmapWCase {
+impl VerifiableCase for NmapECase {
     fn to_vader(&self, path: &Path) {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
@@ -79,7 +79,7 @@ impl VerifiableCase for NmapWCase {
     }
 }
 
-impl fmt::Display for NmapWCase {
+impl fmt::Display for NmapECase {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");

@@ -1,9 +1,27 @@
 mod base;
+mod nmap_e;
 mod nmap_w;
+mod omap_c_e;
+mod omap_c_w;
+mod omap_d_e;
+mod omap_d_w;
+mod omap_y_e;
+mod omap_y_w;
 mod utils;
+mod xmap_e;
+mod xmap_w;
 
 pub use base::VerifiableCase;
+pub use nmap_e::NmapECase;
 pub use nmap_w::NmapWCase;
+pub use omap_c_e::OmapCECase;
+pub use omap_c_w::OmapCWCase;
+pub use omap_d_e::OmapDECase;
+pub use omap_d_w::OmapDWCase;
+pub use omap_y_e::OmapYECase;
+pub use omap_y_w::OmapYWCase;
+pub use xmap_e::XmapECase;
+pub use xmap_w::XmapWCase;
 
 use minijinja::Environment;
 use once_cell::sync::Lazy;

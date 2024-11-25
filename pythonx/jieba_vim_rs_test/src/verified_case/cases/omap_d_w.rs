@@ -8,7 +8,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(PartialEq, Serialize, Deserialize)]
-pub struct NmapWCase {
+pub struct OmapDWCase {
     pub lnum_before: usize,
     pub col_before: usize,
     pub lnum_after: usize,
@@ -18,7 +18,7 @@ pub struct NmapWCase {
     pub word: bool,
 }
 
-impl NmapWCase {
+impl OmapDWCase {
     /// Create a new case. `count` equals 0 means 1 but without explicit count.
     pub fn new<C: Into<Count>>(
         marked_buffer: Vec<String>,
@@ -46,7 +46,7 @@ impl NmapWCase {
     }
 }
 
-impl VerifiableCase for NmapWCase {
+impl VerifiableCase for OmapDWCase {
     fn to_vader(&self, path: &Path) {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
@@ -59,7 +59,7 @@ impl VerifiableCase for NmapWCase {
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
-            .get_template("setup")
+            .get_template("setup_omap")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
@@ -70,23 +70,25 @@ impl VerifiableCase for NmapWCase {
             col_after,
             count,
             motion,
+            o_v => false,
+            d_special => false,
         );
         TEMPLATES
-            .get_template("execute_nmap")
+            .get_template("execute_omap_d")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
     }
 }
 
-impl fmt::Display for NmapWCase {
+impl fmt::Display for OmapDWCase {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
         out.push_str("\nExpected motion:");
         out.push_str(&format!(
-            "({}, {}) -{}{}-> ({}, {})\n",
+            "({}, {}) -d{}{}-> ({}, {})\n",
             self.lnum_before,
             self.col_before,
             self.count.to_string(),
