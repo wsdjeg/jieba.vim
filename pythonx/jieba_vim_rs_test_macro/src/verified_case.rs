@@ -139,7 +139,7 @@ impl Parse for NamedVerifiedCasesAndMod {
             .attrs
             .iter()
             .filter_map(|a| {
-                if a.path().is_ident("verified_case") {
+                if a.path().is_ident("vcase") {
                     let case: NamedVerifiedCase = a.parse_args().unwrap();
                     Some(case)
                 } else {
