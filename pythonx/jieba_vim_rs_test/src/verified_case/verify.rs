@@ -8,10 +8,13 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-fn write_group_vader(path: &Path, sub_vader_paths: &[PathBuf]) {
+fn write_group_vader<I: IntoIterator<Item = P>, P: AsRef<Path>>(
+    path: &Path,
+    sub_vader_paths: I,
+) {
     let mut f = File::create(path).unwrap();
     for path in sub_vader_paths {
-        writeln!(f, "Include: {}", path.to_str().unwrap()).unwrap();
+        writeln!(f, "Include: {}", path.as_ref().to_str().unwrap()).unwrap();
     }
 }
 
@@ -84,7 +87,12 @@ where
     }
     // Create the group vader file.
     let group_path = basedir.join(format!("{}.vader", group_name));
-    write_group_vader(&group_path, &case_paths);
+    write_group_vader(
+        &group_path,
+        case_paths
+            .iter()
+            .map(|dir| dir.strip_prefix(&basedir).unwrap()),
+    );
 
     // Run the tests.
     let proc_out = Command::new("vim")
