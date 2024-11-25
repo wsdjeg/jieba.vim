@@ -29,8 +29,6 @@ static TEMPLATES: Lazy<Environment> = Lazy::new(|| {
     .unwrap();
     env.add_template("execute_xmap", include_str!("templates/execute_xmap.j2"))
         .unwrap();
-    env.add_template("include", include_str!("templates/include.j2"))
-        .unwrap();
     env.add_template("setup_omap", include_str!("templates/setup_omap.j2"))
         .unwrap();
     env.add_template("setup", include_str!("templates/setup.j2"))
