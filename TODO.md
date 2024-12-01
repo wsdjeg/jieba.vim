@@ -3,9 +3,9 @@
     - [x] xmap w/W
     - [x] omap w/W
     - [x] omap c w/W (omap w/W 的特殊情况)
-    - [ ] nmap b/B
-    - [ ] xmap b/B
-    - [ ] omap b/B
+    - [x] nmap b/B
+    - [x] xmap b/B
+    - [x] omap b/B
     - [x] nmap e/E
     - [x] xmap e/E
     - [x] omap d e/E (omap e/E 的特殊情况)
