@@ -30,6 +30,14 @@ These names are dynamically defined in this module::
     - teardown_xmap_E
     - omap_e
     - omap_E
+    - nmap_b
+    - nmap_B
+    - xmap_b
+    - teardown_xmap_b
+    - xmap_B
+    - teardown_xmap_B
+    - omap_b
+    - omap_B
 """
 import vim
 
@@ -159,12 +167,35 @@ def _vim_wrapper_factory_omap_e(motion_name):
     return {fun_name: _motion_wrapper}
 
 
+def _vim_wrapper_factory_omap_b(motion_name):
+    assert motion_name in ['b', 'B']
+    fun_name = 'omap_' + motion_name
+
+    def _motion_wrapper(operator, count):
+        method = getattr(word_motion, fun_name)
+        new_cursor = method(vim.current.buffer, vim.current.window.cursor,
+                            count)
+        if operator == 'c' and new_cursor == vim.current.window.cursor:
+            vim.command(
+                'augroup jieba_vim_prevent_change '
+                '| autocmd! '
+                '| autocmd ModeChanged <buffer> call feedkeys("\\<Esc>") '
+                '| autocmd! jieba_vim_prevent_change '
+                '| augroup END')
+        else:
+            vim.current.window.cursor = new_cursor
+
+    return {fun_name: _motion_wrapper}
+
+
 def _define_functions():
-    for mo in ['w', 'W', 'e', 'E']:
+    for mo in ['w', 'W', 'e', 'E', 'b', 'B']:
         globals().update(_vim_wrapper_factory_n(mo))
         globals().update(_vim_wrapper_factory_x(mo))
         if mo in ['e', 'E']:
             globals().update(_vim_wrapper_factory_omap_e(mo))
+        elif mo in ['b', 'B']:
+            globals().update(_vim_wrapper_factory_omap_b(mo))
         else:
             globals().update(_vim_wrapper_factory_o(mo))
 
