@@ -1,7 +1,7 @@
 use jieba_vim_rs_test::verified_case::cases::{
     NmapBCase, NmapECase, NmapWCase, OmapCBCase, OmapCECase, OmapCWCase,
     OmapDBCase, OmapDECase, OmapDWCase, OmapYBCase, OmapYECase, OmapYWCase,
-    XmapECase, XmapWCase,
+    XmapBCase, XmapECase, XmapWCase,
 };
 use jieba_vim_rs_test::verified_case::{
     verify_cases, Count, Mode, Motion, Operator,
@@ -457,6 +457,9 @@ impl VerifiedCases {
                     word
                 )
             }
+            (Mode::Visual(kind), Operator::NoOp, Motion::B(word)) => {
+                def_common_match_arm!(xmap; XmapBCase, write_xmap_b_assertion, kind, word)
+            }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
     }
@@ -540,6 +543,7 @@ def_cursor_only_assertion!(write_nmap_b_assertion, &NmapBCase, nmap_b);
 def_cursor_only_assertion!(write_omap_c_b_assertion, &OmapCBCase, omap_b);
 def_cursor_only_assertion!(write_omap_d_b_assertion, &OmapDBCase, omap_b);
 def_cursor_only_assertion!(write_omap_y_b_assertion, &OmapYBCase, omap_b);
+def_cursor_only_assertion!(write_xmap_b_assertion, &XmapBCase, xmap_b);
 
 impl VerifiedCases {
     fn write_omap_d_e_assertion(

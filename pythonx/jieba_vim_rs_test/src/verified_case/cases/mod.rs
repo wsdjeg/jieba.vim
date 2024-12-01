@@ -12,6 +12,7 @@ mod omap_y_b;
 mod omap_y_e;
 mod omap_y_w;
 mod utils;
+mod xmap_b;
 mod xmap_e;
 mod xmap_w;
 
@@ -28,6 +29,7 @@ pub use omap_d_w::OmapDWCase;
 pub use omap_y_b::OmapYBCase;
 pub use omap_y_e::OmapYECase;
 pub use omap_y_w::OmapYWCase;
+pub use xmap_b::XmapBCase;
 pub use xmap_e::XmapECase;
 pub use xmap_w::XmapWCase;
 
