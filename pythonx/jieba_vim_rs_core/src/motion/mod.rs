@@ -4,6 +4,7 @@ use std::cmp::Ordering;
 mod nmap_b;
 mod nmap_e;
 mod nmap_w;
+mod omap_b;
 mod omap_c_w;
 mod omap_d_e;
 mod omap_e;
