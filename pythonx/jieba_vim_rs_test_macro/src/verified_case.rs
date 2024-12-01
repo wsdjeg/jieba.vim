@@ -1,6 +1,7 @@
 use jieba_vim_rs_test::verified_case::cases::{
-    NmapBCase, NmapECase, NmapWCase, OmapCECase, OmapCWCase, OmapDECase,
-    OmapDWCase, OmapYECase, OmapYWCase, XmapECase, XmapWCase,
+    NmapBCase, NmapECase, NmapWCase, OmapCBCase, OmapCECase, OmapCWCase,
+    OmapDBCase, OmapDECase, OmapDWCase, OmapYBCase, OmapYECase, OmapYWCase,
+    XmapECase, XmapWCase,
 };
 use jieba_vim_rs_test::verified_case::{
     verify_cases, Count, Mode, Motion, Operator,
@@ -423,6 +424,39 @@ impl VerifiedCases {
             (Mode::Normal, Operator::NoOp, Motion::B(word)) => {
                 def_common_match_arm!(NmapBCase, write_nmap_b_assertion, word)
             }
+            (Mode::Operator, Operator::Change, Motion::B(word)) => {
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapCBCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_c_b_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
+            }
+            (Mode::Operator, Operator::Delete, Motion::B(word)) => {
+                def_common_match_arm!(
+                    OmapDBCase,
+                    write_omap_d_b_assertion,
+                    word
+                )
+            }
+            (Mode::Operator, Operator::Yank, Motion::B(word)) => {
+                def_common_match_arm!(
+                    OmapYBCase,
+                    write_omap_y_b_assertion,
+                    word
+                )
+            }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
     }
@@ -503,6 +537,9 @@ def_cursor_only_assertion!(write_omap_y_e_assertion, &OmapYECase);
 def_cursor_only_assertion!(write_xmap_w_assertion, &XmapWCase);
 def_cursor_only_assertion!(write_xmap_e_assertion, &XmapECase);
 def_cursor_only_assertion!(write_nmap_b_assertion, &NmapBCase);
+def_cursor_only_assertion!(write_omap_c_b_assertion, &OmapCBCase);
+def_cursor_only_assertion!(write_omap_d_b_assertion, &OmapDBCase);
+def_cursor_only_assertion!(write_omap_y_b_assertion, &OmapYBCase);
 
 impl VerifiedCases {
     fn write_omap_d_e_assertion(
