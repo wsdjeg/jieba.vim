@@ -487,7 +487,7 @@ impl VerifiedCases {
 }
 
 macro_rules! def_cursor_only_assertion {
-    ( $fun_name:ident, $typ:ty ) => {
+    ( $fun_name:ident, $typ:ty, $fun_name_to_test:ident ) => {
         impl VerifiedCases {
             fn $fun_name(
                 &self,
@@ -517,7 +517,7 @@ macro_rules! def_cursor_only_assertion {
 
                         let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
                         let timing = AssertElapsed::tic(#timeout);
-                        let (lnum_after_pred, col_after_pred) = #backend_path.nmap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
+                        let (lnum_after_pred, col_after_pred) = #backend_path.$fun_name_to_test(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
                         timing.toc();
                         assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
                     }
@@ -527,19 +527,19 @@ macro_rules! def_cursor_only_assertion {
     };
 }
 
-def_cursor_only_assertion!(write_nmap_w_assertion, &NmapWCase);
-def_cursor_only_assertion!(write_nmap_e_assertion, &NmapECase);
-def_cursor_only_assertion!(write_omap_c_w_assertion, &OmapCWCase);
-def_cursor_only_assertion!(write_omap_d_w_assertion, &OmapDWCase);
-def_cursor_only_assertion!(write_omap_y_w_assertion, &OmapYWCase);
-def_cursor_only_assertion!(write_omap_c_e_assertion, &OmapCECase);
-def_cursor_only_assertion!(write_omap_y_e_assertion, &OmapYECase);
-def_cursor_only_assertion!(write_xmap_w_assertion, &XmapWCase);
-def_cursor_only_assertion!(write_xmap_e_assertion, &XmapECase);
-def_cursor_only_assertion!(write_nmap_b_assertion, &NmapBCase);
-def_cursor_only_assertion!(write_omap_c_b_assertion, &OmapCBCase);
-def_cursor_only_assertion!(write_omap_d_b_assertion, &OmapDBCase);
-def_cursor_only_assertion!(write_omap_y_b_assertion, &OmapYBCase);
+def_cursor_only_assertion!(write_nmap_w_assertion, &NmapWCase, nmap_w);
+def_cursor_only_assertion!(write_nmap_e_assertion, &NmapECase, nmap_e);
+def_cursor_only_assertion!(write_omap_c_w_assertion, &OmapCWCase, omap_c_w);
+def_cursor_only_assertion!(write_omap_d_w_assertion, &OmapDWCase, omap_w);
+def_cursor_only_assertion!(write_omap_y_w_assertion, &OmapYWCase, omap_w);
+def_cursor_only_assertion!(write_omap_c_e_assertion, &OmapCECase, omap_e);
+def_cursor_only_assertion!(write_omap_y_e_assertion, &OmapYECase, omap_e);
+def_cursor_only_assertion!(write_xmap_w_assertion, &XmapWCase, xmap_w);
+def_cursor_only_assertion!(write_xmap_e_assertion, &XmapECase, xmap_e);
+def_cursor_only_assertion!(write_nmap_b_assertion, &NmapBCase, nmap_b);
+def_cursor_only_assertion!(write_omap_c_b_assertion, &OmapCBCase, omap_b);
+def_cursor_only_assertion!(write_omap_d_b_assertion, &OmapDBCase, omap_b);
+def_cursor_only_assertion!(write_omap_y_b_assertion, &OmapYBCase, omap_b);
 
 impl VerifiedCases {
     fn write_omap_d_e_assertion(
