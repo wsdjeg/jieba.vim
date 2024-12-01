@@ -32,7 +32,7 @@ py3 import jieba_vim.navigation
 
 command! JiebaPreviewCancel py3 jieba_vim.preview_cancel()
 
-let s:motions = ["w", "W", "e", "E"]
+let s:motions = ["w", "W", "e", "E", "b", "B"]
 
 for ky in s:motions
     execute 'nnoremap <silent> <Plug>(Jieba_preview_' . ky . ') :<C-u>py3 jieba_vim.preview(jieba_vim.navigation.word_motion.preview_nmap_' . ky . ')<CR>'
