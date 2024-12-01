@@ -71,7 +71,6 @@ impl VerifiableCase for OmapYWCase {
             count,
             motion,
             o_v => false,
-            d_special => false,
         );
         TEMPLATES
             .get_template("execute_omap_y")
@@ -86,7 +85,7 @@ impl fmt::Display for OmapYWCase {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
-        out.push_str("\nExpected motion:");
+        out.push_str("\nExpected motion: ");
         out.push_str(&format!(
             "({}, {}) -y{}{}-> ({}, {})\n",
             self.lnum_before,

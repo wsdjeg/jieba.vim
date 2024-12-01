@@ -1,4 +1,4 @@
-use super::super::{Count, VisualModeKind};
+use super::super::Count;
 use super::{utils, VerifiableCase, TEMPLATES};
 use crate::cursor_marker::{self, CursorMarker};
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(PartialEq, Serialize, Deserialize)]
-pub struct XmapECase {
+pub struct OmapYBCase {
     pub lnum_before: usize,
     pub col_before: usize,
     pub lnum_after: usize,
@@ -16,16 +16,14 @@ pub struct XmapECase {
     pub buffer: Vec<String>,
     pub count: Count,
     pub word: bool,
-    pub visual_kind: VisualModeKind,
 }
 
-impl XmapECase {
+impl OmapYBCase {
     /// Create a new case. `count` equals 0 means 1 but without explicit count.
     pub fn new<C: Into<Count>>(
         marked_buffer: Vec<String>,
         count: C,
         word: bool,
-        visual_kind: VisualModeKind,
     ) -> Result<Self, cursor_marker::Error> {
         let output = CursorMarker.strip_markers(marked_buffer)?;
         Ok(Self {
@@ -36,20 +34,19 @@ impl XmapECase {
             buffer: output.stripped_buffer,
             count: count.into(),
             word,
-            visual_kind,
         })
     }
 
     fn motion_str(&self) -> &'static str {
         if self.word {
-            "e"
+            "b"
         } else {
-            "E"
+            "B"
         }
     }
 }
 
-impl VerifiableCase for XmapECase {
+impl VerifiableCase for OmapYBCase {
     fn to_vader(&self, path: &Path) {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
@@ -59,11 +56,10 @@ impl VerifiableCase for XmapECase {
         let col_after = utils::to_vim_col(self.col_after);
         let count = self.count.to_string();
         let motion = self.motion_str();
-        let v = self.visual_kind.visual_prefix();
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
-            .get_template("setup")
+            .get_template("setup_omap")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
@@ -74,27 +70,26 @@ impl VerifiableCase for XmapECase {
             col_after,
             count,
             motion,
-            v,
+            o_v => false,
         );
         TEMPLATES
-            .get_template("execute_xmap")
+            .get_template("execute_omap_y")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
     }
 }
 
-impl fmt::Display for XmapECase {
+impl fmt::Display for OmapYBCase {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
         out.push_str("\nExpected motion: ");
         out.push_str(&format!(
-            "({}, {}) -{}{}{}-> ({}, {})\n",
+            "({}, {}) -y{}{}-> ({}, {})\n",
             self.lnum_before,
             self.col_before,
-            self.visual_kind.visual_prefix(),
             self.count.to_string(),
             self.motion_str(),
             self.lnum_after,

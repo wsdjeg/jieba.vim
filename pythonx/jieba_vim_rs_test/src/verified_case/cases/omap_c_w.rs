@@ -71,7 +71,7 @@ impl VerifiableCase for OmapCWCase {
             count,
             motion,
             o_v => false,
-            d_special => false,
+            prevent_change => false,
         );
         TEMPLATES
             .get_template("execute_omap_c")
@@ -86,7 +86,7 @@ impl fmt::Display for OmapCWCase {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
-        out.push_str("\nExpected motion:");
+        out.push_str("\nExpected motion: ");
         out.push_str(&format!(
             "({}, {}) -c{}{}-> ({}, {})\n",
             self.lnum_before,

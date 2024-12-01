@@ -8,7 +8,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(PartialEq, Serialize, Deserialize)]
-pub struct XmapECase {
+pub struct XmapBCase {
     pub lnum_before: usize,
     pub col_before: usize,
     pub lnum_after: usize,
@@ -19,7 +19,7 @@ pub struct XmapECase {
     pub visual_kind: VisualModeKind,
 }
 
-impl XmapECase {
+impl XmapBCase {
     /// Create a new case. `count` equals 0 means 1 but without explicit count.
     pub fn new<C: Into<Count>>(
         marked_buffer: Vec<String>,
@@ -42,14 +42,14 @@ impl XmapECase {
 
     fn motion_str(&self) -> &'static str {
         if self.word {
-            "e"
+            "b"
         } else {
-            "E"
+            "B"
         }
     }
 }
 
-impl VerifiableCase for XmapECase {
+impl VerifiableCase for XmapBCase {
     fn to_vader(&self, path: &Path) {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
@@ -84,7 +84,7 @@ impl VerifiableCase for XmapECase {
     }
 }
 
-impl fmt::Display for XmapECase {
+impl fmt::Display for XmapBCase {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
