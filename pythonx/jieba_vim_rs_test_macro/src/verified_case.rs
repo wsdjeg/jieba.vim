@@ -317,67 +317,65 @@ impl VerifiedCases {
         &self,
         skip_verify: bool,
     ) -> Result<TokenStream, String> {
+        macro_rules! def_common_match_arm {
+            ( xmap; $case_typ:ident, $write_fun_name:ident, $visual_kind_arg:ident, $word_arg:ident ) => {{
+                let cases = clone_cases_as(&self.cases, |c| {
+                    $case_typ::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *$word_arg,
+                        *$visual_kind_arg,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.$write_fun_name(case_name, case_id, case, *$word_arg)
+                }))
+            }};
+            ( $case_typ:ident, $write_fun_name:ident, $word_arg:ident ) => {{
+                let cases = clone_cases_as(&self.cases, |c| {
+                    $case_typ::new(c.buffer.clone(), c.count, *$word_arg)
+                        .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.$write_fun_name(case_name, case_id, case, *$word_arg)
+                }))
+            }};
+        }
+
         match (&self.mode, &self.operator, &self.motion) {
             (Mode::Normal, Operator::NoOp, Motion::W(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    NmapWCase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_nmap_w_assertion(case_name, case_id, case, *word)
-                }))
+                def_common_match_arm!(NmapWCase, write_nmap_w_assertion, word)
             }
             (Mode::Normal, Operator::NoOp, Motion::E(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    NmapECase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_nmap_e_assertion(case_name, case_id, case, *word)
-                }))
+                def_common_match_arm!(NmapECase, write_nmap_e_assertion, word)
             }
             (Mode::Operator, Operator::Change, Motion::W(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    OmapCWCase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_omap_c_w_assertion(
-                        case_name, case_id, case, *word,
-                    )
-                }))
+                def_common_match_arm!(
+                    OmapCWCase,
+                    write_omap_c_w_assertion,
+                    word
+                )
             }
             (Mode::Operator, Operator::Delete, Motion::W(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    OmapDWCase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_omap_d_w_assertion(
-                        case_name, case_id, case, *word,
-                    )
-                }))
+                def_common_match_arm!(
+                    OmapDWCase,
+                    write_omap_d_w_assertion,
+                    word
+                )
             }
             (Mode::Operator, Operator::Yank, Motion::W(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    OmapYWCase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_omap_y_w_assertion(
-                        case_name, case_id, case, *word,
-                    )
-                }))
+                def_common_match_arm!(
+                    OmapYWCase,
+                    write_omap_y_w_assertion,
+                    word
+                )
             }
             (Mode::Operator, Operator::Delete, Motion::E(word)) => {
                 let cases = clone_cases_as(&self.cases, |c| {
@@ -399,65 +397,27 @@ impl VerifiedCases {
                 }))
             }
             (Mode::Operator, Operator::Change, Motion::E(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    OmapCECase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_omap_c_e_assertion(
-                        case_name, case_id, case, *word,
-                    )
-                }))
+                def_common_match_arm!(
+                    OmapCECase,
+                    write_omap_c_e_assertion,
+                    word
+                )
             }
             (Mode::Operator, Operator::Yank, Motion::E(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    OmapYECase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_omap_y_e_assertion(
-                        case_name, case_id, case, *word,
-                    )
-                }))
+                def_common_match_arm!(
+                    OmapYECase,
+                    write_omap_y_e_assertion,
+                    word
+                )
             }
             (Mode::Visual(kind), Operator::NoOp, Motion::W(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    XmapWCase::new(c.buffer.clone(), c.count, *word, *kind)
-                        .unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_xmap_w_assertion(case_name, case_id, case, *word)
-                }))
+                def_common_match_arm!(xmap; XmapWCase, write_xmap_w_assertion, kind, word)
             }
             (Mode::Visual(kind), Operator::NoOp, Motion::E(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    XmapECase::new(c.buffer.clone(), c.count, *word, *kind)
-                        .unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_xmap_e_assertion(case_name, case_id, case, *word)
-                }))
+                def_common_match_arm!(xmap; XmapECase, write_xmap_e_assertion, kind, word)
             }
             (Mode::Normal, Operator::NoOp, Motion::B(word)) => {
-                let cases = clone_cases_as(&self.cases, |c| {
-                    NmapBCase::new(c.buffer.clone(), c.count, *word).unwrap()
-                });
-                if !skip_verify {
-                    verify_cases(&self.group_name, &cases)?;
-                }
-                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
-                    self.write_nmap_b_assertion(case_name, case_id, case, *word)
-                }))
+                def_common_match_arm!(NmapBCase, write_nmap_b_assertion, word)
             }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
@@ -486,182 +446,61 @@ impl VerifiedCases {
             }
         }
     }
+}
 
-    fn write_nmap_w_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &NmapWCase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
+macro_rules! def_cursor_only_assertion {
+    ( $fun_name:ident, $typ:ty ) => {
+        impl VerifiedCases {
+            fn $fun_name(
+                &self,
+                case_name: &str,
+                case_id: usize,
+                case: $typ,
+                word: bool,
+            ) -> TokenStream {
+                let test_name: Ident =
+                    syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
+                let backend_path = &self.backend_path;
+                let buffer_type = &self.buffer_type;
+                let timeout = self.timeout;
 
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
+                let lnum_before = case.lnum_before;
+                let lnum_after = case.lnum_after;
+                let col_before = case.col_before;
+                let col_after = case.col_after;
+                let buffer = &case.buffer;
+                let count = case.count.explicit();
+                let case_desc = case.to_string();
 
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
+                quote! {
+                    #[test]
+                    fn #test_name() {
+                        use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
 
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.nmap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
+                        let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
+                        let timing = AssertElapsed::tic(#timeout);
+                        let (lnum_after_pred, col_after_pred) = #backend_path.nmap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
+                        timing.toc();
+                        assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
+                    }
+                }
             }
         }
-    }
+    };
+}
 
-    fn write_nmap_e_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &NmapECase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
+def_cursor_only_assertion!(write_nmap_w_assertion, &NmapWCase);
+def_cursor_only_assertion!(write_nmap_e_assertion, &NmapECase);
+def_cursor_only_assertion!(write_omap_c_w_assertion, &OmapCWCase);
+def_cursor_only_assertion!(write_omap_d_w_assertion, &OmapDWCase);
+def_cursor_only_assertion!(write_omap_y_w_assertion, &OmapYWCase);
+def_cursor_only_assertion!(write_omap_c_e_assertion, &OmapCECase);
+def_cursor_only_assertion!(write_omap_y_e_assertion, &OmapYECase);
+def_cursor_only_assertion!(write_xmap_w_assertion, &XmapWCase);
+def_cursor_only_assertion!(write_xmap_e_assertion, &XmapECase);
+def_cursor_only_assertion!(write_nmap_b_assertion, &NmapBCase);
 
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.nmap_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_omap_c_w_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapCWCase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.omap_c_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_omap_d_w_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapDWCase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.omap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_omap_y_w_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapYWCase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.omap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
+impl VerifiedCases {
     fn write_omap_d_e_assertion(
         &self,
         case_name: &str,
@@ -695,181 +534,6 @@ impl VerifiedCases {
                     #backend_path.omap_d_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
                 timing.toc();
                 assert_eq!(d_special_pred, #d_special, "\n{}", #case_desc);
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_omap_c_e_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapCECase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.omap_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_omap_y_e_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapYECase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.omap_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_xmap_w_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &XmapWCase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.xmap_w(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_xmap_e_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &XmapECase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.xmap_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-
-    fn write_nmap_b_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &NmapBCase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let (lnum_after_pred, col_after_pred) = #backend_path.nmap_b(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
                 assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
             }
         }
