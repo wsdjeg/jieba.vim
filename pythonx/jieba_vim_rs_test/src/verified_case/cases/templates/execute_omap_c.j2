@@ -13,7 +13,11 @@ Execute:
   normal! ggVG"ap
   let @b = ""
   call cursor({{ lnum_before }}, {{ col_before }})
+  {%- if prevent_change %}
+  execute "normal! {{ operator }}{{ v }}:call VeCursor({{ lnum_after }}, {{ col_after }})\<cr>"
+  {%- else %}
   execute "normal! {{ operator }}{{ v }}:call VeCursor({{ lnum_after }}, {{ col_after }})\<cr>XXX"
+  {%- endif %}
   set virtualedit=
   let g:rust_lnum = line(".")
   let g:rust_col = col(".")

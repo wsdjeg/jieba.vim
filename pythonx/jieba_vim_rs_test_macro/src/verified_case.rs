@@ -18,6 +18,7 @@ pub struct VerifiedCase {
     buffer: Vec<String>,
     count: Count,
     d_special: bool,
+    prevent_change: bool,
 }
 
 struct NamedVerifiedCase {
@@ -77,6 +78,7 @@ impl Parse for NamedVerifiedCase {
         let mut buffer: Option<Vec<String>> = None;
         let mut count: Option<u64> = None;
         let mut d_special = false;
+        let mut prevent_change = false;
 
         let pairs = input.parse_terminated(Meta::parse, Token![,])?;
         for pair in pairs {
@@ -108,6 +110,7 @@ impl Parse for NamedVerifiedCase {
                     if let Some(ident) = path.get_ident() {
                         match ident.to_string().as_str() {
                             "d_special" => d_special = true,
+                            "prevent_change" => prevent_change = true,
                             _ => (),
                         }
                     }
@@ -125,6 +128,7 @@ impl Parse for NamedVerifiedCase {
                 ))?,
                 count: count.into(),
                 d_special,
+                prevent_change,
             },
         })
     }
