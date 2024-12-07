@@ -13,6 +13,7 @@ mod omap_w;
 mod token_iter;
 mod xmap_b;
 mod xmap_e;
+mod xmap_ge;
 mod xmap_w;
 
 /// Any type that resembles a Vim buffer.
