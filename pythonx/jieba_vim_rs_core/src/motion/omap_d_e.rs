@@ -10,10 +10,10 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
     ///
     /// But since `e`/`E` is itself inclusive, and `o_v`
     /// (https://vimhelp.org/motion.txt.html#o_v) can be used to invert
-    /// exclusiveness to inclusiveness, we may use prefix the colon command
-    /// with it and reuse most code from `nmap e`. Note also the special case
-    /// `d-special` (https://vimhelp.org/change.txt.html#d-special). Therefore,
-    /// we need to apply `o_v` in a case-by-case manner.
+    /// exclusiveness to inclusiveness, we may prefix the colon command with
+    /// it and reuse most code from `nmap e`. Note also the special case
+    /// `d-special` (https://vimhelp.org/change.txt.html#d-special), where we
+    /// have to postprocess the buffer.
     ///
     /// Take in current `cursor_pos` (lnum, col), and return the new cursor
     /// position. Also return a bool indicating if `d-special` takes effect.
