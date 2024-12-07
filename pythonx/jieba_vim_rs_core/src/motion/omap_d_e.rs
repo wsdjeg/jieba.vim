@@ -1,5 +1,5 @@
-use super::{index_tokens, BufferLike, WordMotion};
-use crate::token::{self, JiebaPlaceholder, TokenLike, TokenType};
+use super::{d_special, BufferLike, WordMotion};
+use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
     /// Vim motion `e` (if `word` is `true`) or `E` (if `word` is `false`) in
@@ -45,53 +45,16 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         word: bool,
     ) -> Result<((usize, usize), bool), B::Error> {
         let new_cursor_pos = self.nmap_e(buffer, cursor_pos, count, word)?;
-        let (lnum, col) = cursor_pos;
-        let (new_lnum, new_col) = new_cursor_pos;
-
-        if lnum == new_lnum {
-            return Ok((new_cursor_pos, false));
-        }
-
-        let tokens_cursor_line =
-            token::parse_str(buffer.getline(lnum)?, &self.jieba, word);
-        if !tokens_cursor_line.is_empty() {
-            let i = index_tokens(&tokens_cursor_line, col).unwrap();
-            if tokens_cursor_line[..i].iter().any(|tok| match tok.ty {
-                TokenType::Space => false,
-                TokenType::Word => true,
-            }) {
-                return Ok((new_cursor_pos, false));
-            }
-            let cursor_token = &tokens_cursor_line[i];
-            if let TokenType::Word = cursor_token.ty {
-                if col > cursor_token.first_char() {
-                    return Ok((new_cursor_pos, false));
-                }
-            }
-        }
-
-        let tokens_new_cursor_line =
-            token::parse_str(buffer.getline(new_lnum)?, &self.jieba, word);
-        if !tokens_new_cursor_line.is_empty() {
-            let j = index_tokens(&tokens_new_cursor_line, new_col).unwrap();
-            if tokens_new_cursor_line[j + 1..]
-                .iter()
-                .any(|tok| match tok.ty {
-                    TokenType::Space => false,
-                    TokenType::Word => true,
-                })
-            {
-                return Ok((new_cursor_pos, false));
-            }
-            let new_cursor_token = &tokens_new_cursor_line[j];
-            if let TokenType::Word = new_cursor_token.ty {
-                if new_col < new_cursor_token.last_char() {
-                    return Ok((new_cursor_pos, false));
-                }
-            }
-        }
-
-        Ok((new_cursor_pos, true))
+        Ok((
+            new_cursor_pos,
+            d_special::is_d_special(
+                buffer,
+                &self.jieba,
+                cursor_pos,
+                new_cursor_pos,
+                word,
+            )?,
+        ))
     }
 }
 

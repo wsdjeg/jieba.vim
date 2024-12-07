@@ -1,6 +1,7 @@
 use crate::token::{JiebaPlaceholder, Token};
 use std::cmp::Ordering;
 
+mod d_special;
 mod nmap_b;
 mod nmap_e;
 mod nmap_ge;
