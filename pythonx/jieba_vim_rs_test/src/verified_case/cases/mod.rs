@@ -15,6 +15,7 @@ mod omap_y_w;
 mod utils;
 mod xmap_b;
 mod xmap_e;
+mod xmap_ge;
 mod xmap_w;
 
 pub use base::VerifiableCase;
@@ -33,6 +34,7 @@ pub use omap_y_e::OmapYECase;
 pub use omap_y_w::OmapYWCase;
 pub use xmap_b::XmapBCase;
 pub use xmap_e::XmapECase;
+pub use xmap_ge::XmapGeCase;
 pub use xmap_w::XmapWCase;
 
 use minijinja::Environment;
