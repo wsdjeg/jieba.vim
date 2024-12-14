@@ -1,5 +1,5 @@
 use super::super::Count;
-use super::{utils, VerifiableCase, TEMPLATES};
+use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
 use crate::cursor_marker::{self, CursorMarker};
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
-#[derive(PartialEq, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct NmapWCase {
     pub lnum_before: usize,
     pub col_before: usize,
@@ -95,5 +95,15 @@ impl fmt::Display for NmapWCase {
             self.col_after
         ));
         write!(f, "{}", out)
+    }
+}
+
+impl Into<MotionOutput> for NmapWCase {
+    fn into(self) -> MotionOutput {
+        MotionOutput {
+            new_cursor_pos: (self.lnum_after, self.col_after),
+            d_special: false,
+            prevent_change: false,
+        }
     }
 }
