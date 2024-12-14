@@ -1,7 +1,7 @@
 use jieba_vim_rs_test::verified_case::cases::{
     NmapBCase, NmapECase, NmapGeCase, NmapWCase, OmapCBCase, OmapCECase,
-    OmapCWCase, OmapDBCase, OmapDECase, OmapDWCase, OmapYBCase, OmapYECase,
-    OmapYWCase, XmapBCase, XmapECase, XmapGeCase, XmapWCase,
+    OmapCWCase, OmapDBCase, OmapDECase, OmapDGeCase, OmapDWCase, OmapYBCase,
+    OmapYECase, OmapYWCase, XmapBCase, XmapECase, XmapGeCase, XmapWCase,
 };
 use jieba_vim_rs_test::verified_case::{
     verify_cases, Count, Mode, Motion, Operator,
@@ -466,6 +466,25 @@ impl VerifiedCases {
             (Mode::Visual(kind), Operator::NoOp, Motion::Ge(word)) => {
                 def_common_match_arm!(xmap; XmapGeCase, write_xmap_ge_assertion, kind, word)
             }
+            (Mode::Operator, Operator::Delete, Motion::Ge(word)) => {
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapDGeCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.d_special,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_d_ge_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
+            }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
     }
@@ -600,4 +619,9 @@ def_cursor_dspecial_assertions!(
     write_omap_d_e_assertion,
     &OmapDECase,
     omap_d_e
+);
+def_cursor_dspecial_assertions!(
+    write_omap_d_ge_assertion,
+    &OmapDGeCase,
+    omap_d_ge
 );
