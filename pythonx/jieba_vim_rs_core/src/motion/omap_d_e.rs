@@ -1,4 +1,4 @@
-use super::{d_special, BufferLike, WordMotion};
+use super::{d_special, BufferLike, MotionOutput, WordMotion};
 use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
@@ -43,18 +43,19 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         cursor_pos: (usize, usize),
         count: u64,
         word: bool,
-    ) -> Result<((usize, usize), bool), B::Error> {
-        let new_cursor_pos = self.nmap_e(buffer, cursor_pos, count, word)?;
-        Ok((
-            new_cursor_pos,
-            d_special::is_d_special(
+    ) -> Result<MotionOutput, B::Error> {
+        let mo = self.nmap_e(buffer, cursor_pos, count, word)?;
+        Ok(MotionOutput {
+            new_cursor_pos: mo.new_cursor_pos,
+            d_special: d_special::is_d_special(
                 buffer,
                 &self.jieba,
                 cursor_pos,
-                new_cursor_pos,
+                mo.new_cursor_pos,
                 word,
             )?,
-        ))
+            prevent_change: false,
+        })
     }
 }
 

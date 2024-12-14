@@ -1,5 +1,5 @@
 use super::token_iter::{ForwardTokenIterator, TokenIteratorItem};
-use super::{BufferLike, WordMotion};
+use super::{BufferLike, MotionOutput, WordMotion};
 use crate::token::{JiebaPlaceholder, TokenLike, TokenType};
 
 /// Test if a token is stoppable for `nmap_w`.
@@ -46,7 +46,7 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         cursor_pos: (usize, usize),
         mut count: u64,
         word: bool,
-    ) -> Result<(usize, usize), B::Error> {
+    ) -> Result<MotionOutput, B::Error> {
         let (mut lnum, mut col) = cursor_pos;
         let mut it =
             ForwardTokenIterator::new(buffer, &self.jieba, lnum, col, word)?
@@ -65,7 +65,11 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
                 }
             }
         }
-        Ok((lnum, col))
+        Ok(MotionOutput {
+            new_cursor_pos: (lnum, col),
+            d_special: false,
+            prevent_change: false,
+        })
     }
 }
 

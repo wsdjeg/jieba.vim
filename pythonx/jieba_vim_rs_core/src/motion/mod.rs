@@ -28,6 +28,18 @@ pub trait BufferLike {
     fn lines(&self) -> Result<usize, Self::Error>;
 }
 
+/// The motion return type.
+pub struct MotionOutput {
+    /// The new cursor position after the motion.
+    pub new_cursor_pos: (usize, usize),
+    /// Whether the motion induces d-special. Should be false when not in
+    /// operator-pending mode
+    pub d_special: bool,
+    /// Whether the motion should prevent changes, where the operation is
+    /// silently aborted. Should be false when not in operator-pending mode
+    pub prevent_change: bool,
+}
+
 /// Get the index of the token in `tokens` that covers `col`. Return `None` if
 /// `col` is to the right of the last token.
 fn index_tokens(tokens: &[Token], col: usize) -> Option<usize> {

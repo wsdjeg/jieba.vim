@@ -1,4 +1,4 @@
-use super::{BufferLike, WordMotion};
+use super::{BufferLike, MotionOutput, WordMotion};
 use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
@@ -33,8 +33,9 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         cursor_pos: (usize, usize),
         count: u64,
         word: bool,
-    ) -> Result<(usize, usize), B::Error> {
-        self.nmap_b(buffer, cursor_pos, count, word)
+    ) -> Result<MotionOutput, B::Error> {
+        let mo = self.nmap_b(buffer, cursor_pos, count, word)?;
+        todo!("TODO: prevent-change in `omap b`")
     }
 }
 

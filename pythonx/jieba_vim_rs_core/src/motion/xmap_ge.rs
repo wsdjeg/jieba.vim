@@ -1,4 +1,4 @@
-use super::{BufferLike, WordMotion};
+use super::{BufferLike, MotionOutput, WordMotion};
 use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
@@ -29,7 +29,7 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         cursor_pos: (usize, usize),
         count: u64,
         word: bool,
-    ) -> Result<(usize, usize), B::Error> {
+    ) -> Result<MotionOutput, B::Error> {
         self.nmap_ge(buffer, cursor_pos, count, word)
     }
 }
