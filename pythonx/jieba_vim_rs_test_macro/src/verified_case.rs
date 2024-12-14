@@ -536,6 +536,50 @@ macro_rules! def_cursor_only_assertion {
     };
 }
 
+macro_rules! def_cursor_dspecial_assertions {
+    ( $fun_name:ident, $typ:ty, $fun_name_to_test:ident ) => {
+        impl VerifiedCases {
+            fn $fun_name(
+                &self,
+                case_name: &str,
+                case_id: usize,
+                case: $typ,
+                word: bool,
+            ) -> TokenStream {
+                let test_name: Ident =
+                    syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
+                let backend_path = &self.backend_path;
+                let buffer_type = &self.buffer_type;
+                let timeout = self.timeout;
+
+                let lnum_before = case.lnum_before;
+                let lnum_after = case.lnum_after;
+                let col_before = case.col_before;
+                let col_after = case.col_after;
+                let buffer = &case.buffer;
+                let count = case.count.explicit();
+                let d_special = case.d_special;
+                let case_desc = case.to_string();
+
+                quote! {
+                    #[test]
+                    fn #test_name() {
+                        use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
+
+                        let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
+                        let timing = AssertElapsed::tic(#timeout);
+                        let ((lnum_after_pred, col_after_pred), d_special_pred) =
+                            #backend_path.$fun_name_to_test(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
+                        timing.toc();
+                        assert_eq!(d_special_pred, #d_special, "\n{}", #case_desc);
+                        assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
+                    }
+                }
+            }
+        }
+    };
+}
+
 def_cursor_only_assertion!(write_nmap_w_assertion, &NmapWCase, nmap_w);
 def_cursor_only_assertion!(write_nmap_e_assertion, &NmapECase, nmap_e);
 def_cursor_only_assertion!(write_omap_c_w_assertion, &OmapCWCase, omap_c_w);
@@ -552,43 +596,8 @@ def_cursor_only_assertion!(write_omap_y_b_assertion, &OmapYBCase, omap_b);
 def_cursor_only_assertion!(write_xmap_b_assertion, &XmapBCase, xmap_b);
 def_cursor_only_assertion!(write_nmap_ge_assertion, &NmapGeCase, nmap_ge);
 def_cursor_only_assertion!(write_xmap_ge_assertion, &XmapGeCase, xmap_ge);
-
-impl VerifiedCases {
-    fn write_omap_d_e_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapDECase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let d_special = case.d_special;
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let ((lnum_after_pred, col_after_pred), d_special_pred) =
-                    #backend_path.omap_d_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!(d_special_pred, #d_special, "\n{}", #case_desc);
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-}
+def_cursor_dspecial_assertions!(
+    write_omap_d_e_assertion,
+    &OmapDECase,
+    omap_d_e
+);
