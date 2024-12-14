@@ -19,6 +19,7 @@ mod xmap_e;
 mod xmap_ge;
 mod xmap_w;
 
+pub use base::MotionOutput;
 pub use base::VerifiableCase;
 pub use nmap_b::NmapBCase;
 pub use nmap_e::NmapECase;

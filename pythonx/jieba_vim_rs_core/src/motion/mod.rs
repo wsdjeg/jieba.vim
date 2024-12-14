@@ -1,4 +1,6 @@
 use crate::token::{JiebaPlaceholder, Token};
+#[cfg(test)]
+use jieba_vim_rs_test::verified_case::cases::MotionOutput as TestMotionOutput;
 use std::cmp::Ordering;
 
 mod d_special;
@@ -29,6 +31,7 @@ pub trait BufferLike {
 }
 
 /// The motion return type.
+#[derive(Debug)]
 pub struct MotionOutput {
     /// The new cursor position after the motion.
     pub new_cursor_pos: (usize, usize),
@@ -38,6 +41,15 @@ pub struct MotionOutput {
     /// Whether the motion should prevent changes, where the operation is
     /// silently aborted. Should be false when not in operator-pending mode
     pub prevent_change: bool,
+}
+
+#[cfg(test)]
+impl PartialEq<TestMotionOutput> for MotionOutput {
+    fn eq(&self, other: &TestMotionOutput) -> bool {
+        self.new_cursor_pos == other.new_cursor_pos
+            && self.d_special == other.d_special
+            && self.prevent_change == other.prevent_change
+    }
 }
 
 /// Get the index of the token in `tokens` that covers `col`. Return `None` if
