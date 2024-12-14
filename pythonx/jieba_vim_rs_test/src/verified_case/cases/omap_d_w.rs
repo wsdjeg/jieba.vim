@@ -72,6 +72,7 @@ impl VerifiableCase for OmapDWCase {
             motion,
             o_v => false,
             d_special => false,
+            prevent_change => false,
         );
         TEMPLATES
             .get_template("execute_omap_d")

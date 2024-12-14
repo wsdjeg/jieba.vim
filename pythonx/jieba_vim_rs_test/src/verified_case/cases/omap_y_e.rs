@@ -71,6 +71,7 @@ impl VerifiableCase for OmapYECase {
             count,
             motion,
             o_v => true,
+            prevent_change => false,
         );
         TEMPLATES
             .get_template("execute_omap_y")

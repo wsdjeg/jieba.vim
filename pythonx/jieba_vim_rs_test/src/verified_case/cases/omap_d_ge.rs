@@ -17,6 +17,7 @@ pub struct OmapDGeCase {
     pub count: Count,
     pub word: bool,
     pub d_special: bool,
+    pub prevent_change: bool,
 }
 
 impl OmapDGeCase {
@@ -26,6 +27,7 @@ impl OmapDGeCase {
         count: C,
         word: bool,
         d_special: bool,
+        prevent_change: bool,
     ) -> Result<Self, cursor_marker::Error> {
         let output = CursorMarker.strip_markers(marked_buffer)?;
         Ok(Self {
@@ -37,6 +39,7 @@ impl OmapDGeCase {
             count: count.into(),
             word,
             d_special,
+            prevent_change,
         })
     }
 
@@ -60,6 +63,7 @@ impl VerifiableCase for OmapDGeCase {
         let count = self.count.to_string();
         let motion = self.motion_str();
         let d_special = self.d_special;
+        let prevent_change = self.prevent_change;
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
@@ -76,6 +80,7 @@ impl VerifiableCase for OmapDGeCase {
             motion,
             o_v => true,
             d_special,
+            prevent_change,
         );
         TEMPLATES
             .get_template("execute_omap_d")
@@ -104,6 +109,11 @@ impl fmt::Display for OmapDGeCase {
             out.push_str("\nd-special on\n");
         } else {
             out.push_str("\nd-special off\n");
+        }
+        if self.prevent_change {
+            out.push_str("\nprevent-change on\n");
+        } else {
+            out.push_str("\nprevent-change off\n");
         }
         write!(f, "{}", out)
     }

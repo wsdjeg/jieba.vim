@@ -100,6 +100,11 @@ impl fmt::Display for OmapCBCase {
             self.lnum_after,
             self.col_after
         ));
+        if self.prevent_change {
+            out.push_str("\nprevent-change on\n");
+        } else {
+            out.push_str("\nprevent-change off\n");
+        }
         write!(f, "{}", out)
     }
 }

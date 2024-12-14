@@ -16,6 +16,7 @@ pub struct OmapYBCase {
     pub buffer: Vec<String>,
     pub count: Count,
     pub word: bool,
+    pub prevent_change: bool,
 }
 
 impl OmapYBCase {
@@ -24,6 +25,7 @@ impl OmapYBCase {
         marked_buffer: Vec<String>,
         count: C,
         word: bool,
+        prevent_change: bool,
     ) -> Result<Self, cursor_marker::Error> {
         let output = CursorMarker.strip_markers(marked_buffer)?;
         Ok(Self {
@@ -34,6 +36,7 @@ impl OmapYBCase {
             buffer: output.stripped_buffer,
             count: count.into(),
             word,
+            prevent_change,
         })
     }
 
@@ -56,6 +59,7 @@ impl VerifiableCase for OmapYBCase {
         let col_after = utils::to_vim_col(self.col_after);
         let count = self.count.to_string();
         let motion = self.motion_str();
+        let prevent_change = self.prevent_change;
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
@@ -71,6 +75,7 @@ impl VerifiableCase for OmapYBCase {
             count,
             motion,
             o_v => false,
+            prevent_change,
         );
         TEMPLATES
             .get_template("execute_omap_y")
@@ -95,6 +100,11 @@ impl fmt::Display for OmapYBCase {
             self.lnum_after,
             self.col_after
         ));
+        if self.prevent_change {
+            out.push_str("\nprevent-change on\n");
+        } else {
+            out.push_str("\nprevent-change off\n");
+        }
         write!(f, "{}", out)
     }
 }
