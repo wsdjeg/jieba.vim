@@ -444,18 +444,42 @@ impl VerifiedCases {
                 }))
             }
             (Mode::Operator, Operator::Delete, Motion::B(word)) => {
-                def_common_match_arm!(
-                    OmapDBCase,
-                    write_omap_d_b_assertion,
-                    word
-                )
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapDBCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_d_b_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
             }
             (Mode::Operator, Operator::Yank, Motion::B(word)) => {
-                def_common_match_arm!(
-                    OmapYBCase,
-                    write_omap_y_b_assertion,
-                    word
-                )
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapYBCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_y_b_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
             }
             (Mode::Visual(kind), Operator::NoOp, Motion::B(word)) => {
                 def_common_match_arm!(xmap; XmapBCase, write_xmap_b_assertion, kind, word)
@@ -473,6 +497,7 @@ impl VerifiedCases {
                         c.count,
                         *word,
                         c.d_special,
+                        c.prevent_change,
                     )
                     .unwrap()
                 });
