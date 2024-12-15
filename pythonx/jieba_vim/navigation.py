@@ -69,8 +69,8 @@ def _vim_wrapper_factory_n(motion_name):
 
     def _motion_wrapper(count):
         method = getattr(word_motion, fun_name)
-        vim.current.window.cursor = method(vim.current.buffer,
-                                           vim.current.window.cursor, count)
+        output = method(vim.current.buffer, vim.current.window.cursor, count)
+        vim.current.window.cursor = output.cursor
 
     return {fun_name: _motion_wrapper}
 
@@ -86,8 +86,8 @@ def _vim_wrapper_factory_x(motion_name):
         # multiple instances of Vim open?
         vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
         vim.command('set virtualedit=onemore')
-        vim.current.window.cursor = method(vim.current.buffer,
-                                           vim.current.window.cursor, count)
+        output = method(vim.current.buffer, vim.current.window.cursor, count)
+        vim.current.window.cursor = output.cursor
 
     def _teardown_wrapper():
         # The `m>gv` trick reference:
@@ -117,9 +117,9 @@ def _vim_wrapper_factory_o(motion_name):
         # multiple instances of Vim open?
         vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
         vim.command('set virtualedit=onemore')
-        vim.current.window.cursor = method(vim.current.buffer,
-                                           vim.current.window.cursor, operator,
-                                           count)
+        output = method(vim.current.buffer, vim.current.window.cursor,
+                        operator, count)
+        vim.current.window.cursor = output.cursor
         vim.command(
             'augroup jieba_vim_reset_virtualedit '
             '| autocmd! '
@@ -146,8 +146,9 @@ def _vim_wrapper_factory_omap_e(motion_name):
         # multiple instances of Vim open?
         vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
         vim.command('set virtualedit=onemore')
-        vim.current.window.cursor, is_prev_d_special = method(
-            vim.current.buffer, vim.current.window.cursor, operator, count)
+        output = method(vim.current.buffer, vim.current.window.cursor,
+                        operator, count)
+        vim.current.window.cursor = output.cursor
         vim.command(
             'augroup jieba_vim_reset_virtualedit '
             '| autocmd! '
@@ -157,7 +158,7 @@ def _vim_wrapper_factory_omap_e(motion_name):
             '| augroup END')
         # This patch breaks `.` (see https://vimhelp.org/repeat.txt.html#.).
         # Need help on fixing this issue.
-        if is_prev_d_special:
+        if output.d_special:
             vim.command('augroup jieba_vim_teardown_d_special '
                         '| autocmd! '
                         '| autocmd TextChanged <buffer> execute "normal! dd" '
@@ -173,17 +174,21 @@ def _vim_wrapper_factory_omap_b(motion_name):
 
     def _motion_wrapper(operator, count):
         method = getattr(word_motion, fun_name)
-        new_cursor = method(vim.current.buffer, vim.current.window.cursor,
-                            count)
-        if operator == 'c' and new_cursor == vim.current.window.cursor:
-            vim.command(
-                'augroup jieba_vim_prevent_change '
-                '| autocmd! '
-                '| autocmd ModeChanged <buffer> call feedkeys("\\<Esc>") '
-                '| autocmd! jieba_vim_prevent_change '
-                '| augroup END')
+        output = method(vim.current.buffer, vim.current.window.cursor, count)
+        if output.prevent_change:
+            vim.current.window.cursor = output.cursor
         else:
-            vim.current.window.cursor = new_cursor
+            # `output.cursor[1] + 1` because vim column starts from 1 whereas
+            # vim python api column starts from 0.
+            vim.command(
+                'execute "normal! {}:call cursor({}, {})\\<CR>"'.format(
+                    operator, output.cursor[0], output.cursor[1] + 1))
+            # Running `c` in `normal!` as above will shift the cursor one more
+            # character to the left; so we need to shift back one character.
+            if output.cursor[1] > 0:
+                vim.command('normal! l')
+            if operator == 'c':
+                vim.command('startinsert')
 
     return {fun_name: _motion_wrapper}
 
