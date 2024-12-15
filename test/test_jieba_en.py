@@ -126,6 +126,15 @@ def write_vader_given_block(outfile: ty.TextIO, paragraph: list[str]):
             block.print(line)
 
 
+def write_key_sequence(block: VaderBlock, keys: list[str], bang: bool = True):
+    if bang:
+        for key in keys:
+            block.print(f'normal! {key}')
+    else:
+        for key in keys:
+            block.print(f'normal {key}')
+
+
 def write_vader_execute_then_block(
     outfile: ty.TextIO,
     mode: str,
@@ -134,21 +143,17 @@ def write_vader_execute_then_block(
     teardown_keys: list[str] | None,
 ):
     if mode[0] == 'n':
-        do_setup = ''.join(setup_keys)
-        do_jieba = ''.join(jieba_keys)
         with VaderBlock(outfile, 'Execute') as block:
             # Record ground truth
             block.print('normal! gg0')
-            if do_setup:
-                block.print(f'normal! {do_setup}')
-            block.print(f'normal! {do_jieba}')
+            write_key_sequence(block, setup_keys)
+            write_key_sequence(block, jieba_keys)
             block.print('let g:proptest_groundtruth_line_after = line(".")')
             block.print('let g:proptest_groundtruth_col_after = col(".")')
             # Record jieba
             block.print('normal! gg0')
-            if do_setup:
-                block.print(f'normal! {do_setup}')
-            block.print(f'normal {do_jieba}')
+            write_key_sequence(block, setup_keys)
+            write_key_sequence(block, jieba_keys, bang=False)
             block.print('let g:proptest_jieba_line_after = line(".")')
             block.print('let g:proptest_jieba_col_after = col(".")')
         with VaderBlock(outfile, 'Then') as block:
@@ -159,35 +164,28 @@ def write_vader_execute_then_block(
                         'g:proptest_groundtruth_col_after, '
                         'g:proptest_jieba_col_after')
     elif mode[0] == 'o':
-        do_setup = ''.join(setup_keys)
-        do_jieba = ''.join(jieba_keys)
         with VaderBlock(outfile, 'Execute') as block:
             # Record groundtruth
             block.print('normal! gg0')
-            if do_setup:
-                block.print(f'normal! {do_setup}')
-            block.print(f'normal! {do_jieba}')
+            write_key_sequence(block, setup_keys)
+            write_key_sequence(block, jieba_keys)
             block.print('let g:propttest_groundtruth_yanked = @x')
             # Record jieba
             block.print('normal! gg0')
-            if do_setup:
-                block.print(f'normal! {do_setup}')
-            block.print(f'normal {do_jieba}')
+            write_key_sequence(block, setup_keys)
+            write_key_sequence(block, jieba_keys, bang=False)
             block.print('let g:proptest_jieba_yanked = @x')
         with VaderBlock(outfile, 'Then') as block:
             block.print('AssertEqual '
                         'g:propttest_groundtruth_yanked, '
                         'g:proptest_jieba_yanked')
     else:
-        do_setup = ''.join(setup_keys)
-        do_jieba = ''.join(jieba_keys)
-        do_teardown = ''.join(teardown_keys)
         with VaderBlock(outfile, 'Execute') as block:
             # Record groundtruth
             block.print('normal! gg0')
-            block.print(f'execute "normal! {do_setup}"')
-            block.print(f'normal! {do_jieba}')
-            block.print(f'normal! {do_teardown}')
+            write_key_sequence(block, setup_keys)
+            write_key_sequence(block, jieba_keys)
+            write_key_sequence(block, teardown_keys)
             block.print(
                 '''let g:proptest_groundtruth_lline_after = line("'<")''')
             block.print(
@@ -199,9 +197,9 @@ def write_vader_execute_then_block(
             block.print('let g:proptest_groundtruth_yanked = @x')
             # Record jieba
             block.print('normal! gg0')
-            block.print(f'execute "normal! {do_setup}"')
-            block.print(f'normal {do_jieba}')
-            block.print(f'normal! {do_teardown}')
+            write_key_sequence(block, setup_keys)
+            write_key_sequence(block, jieba_keys, bang=False)
+            write_key_sequence(block, teardown_keys)
             block.print('''let g:proptest_jieba_lline_after = line("'<")''')
             block.print('''let g:proptest_jieba_lcol_after = col("'<")''')
             block.print('''let g:proptest_jieba_rline_after = line("'>")''')
@@ -265,6 +263,7 @@ def eval_with_vim(vader_test_file: Path, unlink_on_success: bool = True):
 @hypothesis.example((['a'], 'xchar', ['v'], ['w'], ['"xy']))
 @hypothesis.example((['a'], 'o', [], ['"xy', 'w'], None))
 @hypothesis.example(([',', ',', ','], 'n', [], ['w'], None))
+@hypothesis.example((['a', 'a'], 'n', [], ['b', 'w'], None))
 def test_jieba_en(args):
     paragraph, mode, setup_keys, jieba_keys, teardown_keys = args
     vader_test_file = write_vader_test(paragraph, mode, setup_keys, jieba_keys,
