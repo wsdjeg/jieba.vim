@@ -54,6 +54,14 @@ from . import jieba_vim_rs
 word_motion = None
 
 
+def upperbound_count(count):
+    """
+    Upperbound the count at 2**64-1. This assumes the use of u64 type for
+    count.
+    """
+    return min(18446744073709551615, count)
+
+
 def _init_word_motion():
     global word_motion
     if word_motion is not None:
@@ -76,6 +84,7 @@ def _vim_wrapper_factory_n(motion_name):
     fun_name = 'nmap_' + motion_name
 
     def _motion_wrapper(count):
+        count = upperbound_count(count)
         method = getattr(word_motion, fun_name)
         output = method(vim.current.buffer, vim.current.window.cursor, count)
         vim.current.window.cursor = output.cursor
@@ -87,6 +96,7 @@ def _vim_wrapper_factory_x(motion_name):
     fun_name = 'xmap_' + motion_name
 
     def _motion_wrapper(count):
+        count = upperbound_count(count)
         method = getattr(word_motion, fun_name)
         # I tried `let s:jieba_vim_previous_virtualedit = &virtualedit` but got
         # error "Illegal variable name: s:jieba_vim_previous_virtualedit". Will
@@ -116,6 +126,7 @@ def _vim_wrapper_factory_omap_w(motion_name):
     fun_name = 'omap_' + motion_name
 
     def _motion_wrapper(operator, count):
+        count = upperbound_count(count)
         method = getattr(word_motion, fun_name)
         # virtualedit trick reference:
         # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L242-L256
@@ -145,6 +156,7 @@ def _vim_wrapper_factory_omap_e(motion_name):
     fun_name = 'omap_' + motion_name
 
     def _motion_wrapper(operator, count):
+        count = upperbound_count(count)
         method = getattr(word_motion, fun_name)
         # virtualedit trick reference:
         # https://github.com/svermeulen/vim-NotableFt/blob/01732102c1d8c7b7bd6e221329e37685aa4ab41a/plugin/NotableFt.vim#L242-L256
@@ -182,6 +194,7 @@ def _vim_wrapper_factory_omap_b(motion_name):
     fun_name = 'omap_' + motion_name
 
     def _motion_wrapper(operator, count):
+        count = upperbound_count(count)
         method = getattr(word_motion, fun_name)
         output = method(vim.current.buffer, vim.current.window.cursor, count)
         if output.prevent_change:
@@ -207,6 +220,7 @@ def _vim_wrapper_factory_omap_ge(motion_name):
     fun_name = 'omap_' + motion_name
 
     def _motion_wrapper(operator, count):
+        count = upperbound_count(count)
         method = getattr(word_motion, fun_name)
         output = method(vim.current.buffer, vim.current.window.cursor,
                         operator, count)
