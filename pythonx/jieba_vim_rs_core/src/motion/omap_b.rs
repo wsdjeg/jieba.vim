@@ -40,7 +40,8 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
     /// # Basics
     ///
     /// `b`/`B` jumps to the first character of previous word. Empty line is
-    /// considered as a word.
+    /// considered as a word. If there's no previous word except for the empty
+    /// line, issue `prevent_change` flag.
     ///
     /// # Edge cases
     ///

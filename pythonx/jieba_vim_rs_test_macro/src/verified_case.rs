@@ -14,8 +14,9 @@
 
 use jieba_vim_rs_test::verified_case::cases::{
     NmapBCase, NmapECase, NmapGeCase, NmapWCase, OmapCBCase, OmapCECase,
-    OmapCWCase, OmapDBCase, OmapDECase, OmapDGeCase, OmapDWCase, OmapYBCase,
-    OmapYECase, OmapYWCase, XmapBCase, XmapECase, XmapGeCase, XmapWCase,
+    OmapCGeCase, OmapCWCase, OmapDBCase, OmapDECase, OmapDGeCase, OmapDWCase,
+    OmapYBCase, OmapYECase, OmapYGeCase, OmapYWCase, XmapBCase, XmapECase,
+    XmapGeCase, XmapWCase,
 };
 use jieba_vim_rs_test::verified_case::{
     verify_cases, Count, Mode, Motion, Operator,
@@ -524,6 +525,44 @@ impl VerifiedCases {
                     )
                 }))
             }
+            (Mode::Operator, Operator::Change, Motion::Ge(word)) => {
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapCGeCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_c_ge_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
+            }
+            (Mode::Operator, Operator::Yank, Motion::Ge(word)) => {
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapYGeCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_y_ge_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
+            }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
     }
@@ -625,3 +664,5 @@ def_assertion!(write_nmap_ge_assertion, &NmapGeCase, nmap_ge);
 def_assertion!(write_xmap_ge_assertion, &XmapGeCase, xmap_ge);
 def_assertion!(write_omap_d_e_assertion, &OmapDECase, omap_d_e);
 def_assertion!(write_omap_d_ge_assertion, &OmapDGeCase, omap_d_ge);
+def_assertion!(write_omap_c_ge_assertion, &OmapCGeCase, omap_ge);
+def_assertion!(write_omap_y_ge_assertion, &OmapYGeCase, omap_ge);
