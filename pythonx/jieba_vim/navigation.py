@@ -203,7 +203,7 @@ def _vim_wrapper_factory_omap_b(motion_name):
             # `output.cursor[1] + 1` because vim column starts from 1 whereas
             # vim python api column starts from 0.
             vim.command(
-                'execute "normal! {}:call cursor({}, {})\\<CR>"'.format(
+                'execute "silent normal! {}:call cursor({}, {})\\<CR>"'.format(
                     operator, output.cursor[0], output.cursor[1] + 1))
             if operator == 'c':
                 # Running `c` in `normal!` as above will shift the cursor one more
@@ -230,8 +230,8 @@ def _vim_wrapper_factory_omap_ge(motion_name):
             # `output.cursor[1] + 1` because vim column starts from 1 whereas
             # vim python api column starts from 0.
             vim.command(
-                'execute "normal! {}v:call cursor({}, {})\\<CR>"'.format(
-                    operator, output.cursor[0], output.cursor[1] + 1))
+                'execute "silent normal! {}v:call cursor({}, {})\\<CR>"'
+                .format(operator, output.cursor[0], output.cursor[1] + 1))
             if operator == 'c':
                 # Running `c` in `normal!` as above will shift the cursor one
                 # more character to the left; so we need to shift back one
