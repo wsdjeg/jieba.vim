@@ -12,16 +12,17 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-mod preview;
-mod wrappers;
+/// Replace space with '·', and append '␊' as newline.
+pub fn display_buffer(buffer: &[String]) -> String {
+    let mut out = String::new();
+    for line in buffer {
+        out.push_str(&line.replace(' ', "·"));
+        out.push('␊');
+        out.push('\n');
+    }
+    out
+}
 
-use pyo3::prelude::*;
-
-/// A Python module implemented in Rust.
-#[pymodule]
-fn jieba_vim_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<wrappers::WordMotionWrapper>()?;
-    m.add_class::<wrappers::LazyWordMotionWrapper>()?;
-
-    Ok(())
+pub fn to_vim_col(col: usize) -> usize {
+    col + 1
 }

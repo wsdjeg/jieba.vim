@@ -12,16 +12,23 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-mod preview;
-mod wrappers;
+use std::time::{Duration, Instant};
 
-use pyo3::prelude::*;
+pub struct AssertElapsed {
+    max_duration: Duration,
+    start: Instant,
+}
 
-/// A Python module implemented in Rust.
-#[pymodule]
-fn jieba_vim_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<wrappers::WordMotionWrapper>()?;
-    m.add_class::<wrappers::LazyWordMotionWrapper>()?;
+impl AssertElapsed {
+    pub fn tic(millis: u64) -> Self {
+        Self {
+            max_duration: Duration::from_millis(millis),
+            start: Instant::now(),
+        }
+    }
 
-    Ok(())
+    pub fn toc(&self) {
+        let duration = self.start.elapsed();
+        assert!(duration <= self.max_duration);
+    }
 }

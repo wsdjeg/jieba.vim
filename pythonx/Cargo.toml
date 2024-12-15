@@ -1,23 +1,28 @@
+[workspace]
+members = [
+    "jieba_vim_rs_core",
+    "jieba_vim_rs_test",
+    "jieba_vim_rs_test_macro",
+]
+
 [package]
-name = "jieba_navi_rs"
-version = "0.1.1"
+name = "jieba_vim_rs"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
-name = "jieba_navi_rs"
+name = "jieba_vim_rs"
 crate-type = ["cdylib"]
 
 [dependencies]
 # Put vim-compatible python abi in pyo3 features.
-pyo3 = { version = "0.22.0", features = ["extension-module", "abi3-py39"] }
-jieba-rs = { version = "0.7", default-features = false }
-regex = "1.10"
-const_format = "0.2"
-once_cell = "1.19"
+pyo3 = { version = "0.22.5", features = ["extension-module", "abi3-py37"] }
+jieba-rs = { version = "0.7" }
+jieba_vim_rs_core = { path = "jieba_vim_rs_core" }
+
+[dev-dependencies]
 
 [build-dependencies]
-pyo3-build-config = "0.22"
-symlink = "0.1"
-curl = "0.4"
-const_format = "0.2"
+pyo3-build-config = "0.22.5"
+manual-build-pyo3 = { git = "https://github.com/kkew3/manual-build-pyo3.git", tag = "0.1.0", version = "0.1.0" }

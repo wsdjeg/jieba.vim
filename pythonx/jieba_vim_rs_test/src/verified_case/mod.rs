@@ -12,16 +12,9 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-mod preview;
-mod wrappers;
+mod base;
+pub mod cases;
+mod verify;
 
-use pyo3::prelude::*;
-
-/// A Python module implemented in Rust.
-#[pymodule]
-fn jieba_vim_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<wrappers::WordMotionWrapper>()?;
-    m.add_class::<wrappers::LazyWordMotionWrapper>()?;
-
-    Ok(())
-}
+pub use base::{Count, Mode, Motion, Operator, VisualModeKind};
+pub use verify::verify_cases;

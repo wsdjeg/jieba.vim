@@ -12,16 +12,27 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-mod preview;
-mod wrappers;
+pub fn stack_merge<'a, T, U, F, A>(
+    elements: Vec<T>,
+    args: &A,
+    mut rule_func: F,
+) -> Vec<U>
+where
+    F: FnMut(Option<U>, T, &A) -> Vec<U>,
+    A: 'a,
+{
+    let mut stack: Vec<U> = vec![];
+    for e in elements {
+        let mut merged = rule_func(stack.pop(), e, args);
+        stack.append(&mut merged);
+    }
+    stack
+}
 
-use pyo3::prelude::*;
-
-/// A Python module implemented in Rust.
-#[pymodule]
-fn jieba_vim_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_class::<wrappers::WordMotionWrapper>()?;
-    m.add_class::<wrappers::LazyWordMotionWrapper>()?;
-
-    Ok(())
+pub fn chain_into_vec<T, I, J>(i: I, j: J) -> Vec<T>
+where
+    I: IntoIterator<Item = T>,
+    J: IntoIterator<Item = T>,
+{
+    i.into_iter().chain(j.into_iter()).collect()
 }
