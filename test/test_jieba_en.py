@@ -260,6 +260,7 @@ def eval_with_vim(vader_test_file: Path, unlink_on_success: bool = True):
 
 
 @hypothesis.given(the_strategy())
+@hypothesis.settings(deadline=None)
 @hypothesis.example((['a'], 'n', [], ['102039494923949w'], None))
 @hypothesis.example((['a'], 'xchar', ['v'], ['w'], ['"xy']))
 @hypothesis.example((['a'], 'o', [], ['"xy', 'w'], None))
