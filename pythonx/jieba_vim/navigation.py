@@ -111,7 +111,8 @@ def _vim_wrapper_factory_x(motion_name):
     }
 
 
-def _vim_wrapper_factory_o(motion_name):
+def _vim_wrapper_factory_omap_w(motion_name):
+    assert motion_name in ['w', 'W']
     fun_name = 'omap_' + motion_name
 
     def _motion_wrapper(operator, count):
@@ -166,7 +167,7 @@ def _vim_wrapper_factory_omap_e(motion_name):
             '| augroup END')
         # This patch breaks `.` (see https://vimhelp.org/repeat.txt.html#.).
         # Need help on fixing this issue.
-        if output.d_special:
+        if operator == 'd' and output.d_special:
             vim.command('augroup jieba_vim_teardown_d_special '
                         '| autocmd! '
                         '| autocmd TextChanged <buffer> execute "normal! dd" '
@@ -243,7 +244,7 @@ def _define_functions():
         elif mo in ['ge', 'gE']:
             globals().update(_vim_wrapper_factory_omap_ge(mo))
         else:
-            globals().update(_vim_wrapper_factory_o(mo))
+            globals().update(_vim_wrapper_factory_omap_w(mo))
 
 
 _define_functions()
