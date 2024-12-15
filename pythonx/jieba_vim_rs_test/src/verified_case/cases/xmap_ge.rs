@@ -1,11 +1,13 @@
-use super::super::{Count, VisualModeKind};
-use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
-use crate::cursor_marker::{self, CursorMarker};
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+
+use super::super::{Count, VisualModeKind};
+use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
+use crate::cursor_marker::{self, CursorMarker};
 
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct XmapGeCase {

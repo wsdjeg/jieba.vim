@@ -1,5 +1,6 @@
-use serde::{Deserialize, Serialize};
 use std::fmt;
+
+use serde::{Deserialize, Serialize};
 
 /// `{` represents the cursor before a motion. `}` represents the cursor after
 /// a motion.

@@ -1,12 +1,14 @@
-use super::cases::VerifiableCase;
-use serde::de::DeserializeOwned;
-use serde::Serialize;
 use std::collections::HashMap;
 use std::env;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+
+use serde::de::DeserializeOwned;
+use serde::Serialize;
+
+use super::cases::VerifiableCase;
 
 fn write_group_vader<I: IntoIterator<Item = P>, P: AsRef<Path>>(
     path: &Path,

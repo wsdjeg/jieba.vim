@@ -1,3 +1,7 @@
+use std::collections::HashMap;
+use std::fmt;
+use std::str::FromStr;
+
 use jieba_vim_rs_test::verified_case::cases::{
     NmapBCase, NmapECase, NmapGeCase, NmapWCase, OmapCBCase, OmapCECase,
     OmapCGeCase, OmapCWCase, OmapDBCase, OmapDECase, OmapDGeCase, OmapDWCase,
@@ -9,9 +13,6 @@ use jieba_vim_rs_test::verified_case::{
 };
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
-use std::collections::HashMap;
-use std::fmt;
-use std::str::FromStr;
 use syn::parse::{Parse, ParseStream};
 use syn::{Expr, ExprArray, ExprLit, ItemMod, Lit, Meta, Token};
 
