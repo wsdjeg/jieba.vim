@@ -38,6 +38,14 @@ These names are dynamically defined in this module::
     - teardown_xmap_B
     - omap_b
     - omap_B
+    - nmap_ge
+    - nmap_gE
+    - xmap_ge
+    - teardown_xmap_ge
+    - xmap_gE
+    - teardown_xmap_gE
+    - omap_ge
+    - omap_gE
 """
 import vim
 
@@ -193,14 +201,47 @@ def _vim_wrapper_factory_omap_b(motion_name):
     return {fun_name: _motion_wrapper}
 
 
+def _vim_wrapper_factory_omap_ge(motion_name):
+    assert motion_name in ['ge', 'gE']
+    fun_name = 'omap_' + motion_name
+
+    def _motion_wrapper(operator, count):
+        method = getattr(word_motion, fun_name)
+        output = method(vim.current.buffer, vim.current.window.cursor,
+                        operator, count)
+        if output.prevent_change:
+            vim.current.window.cursor = output.cursor
+        else:
+            # `output.cursor[1] + 1` because vim column starts from 1 whereas
+            # vim python api column starts from 0.
+            vim.command(
+                'execute "normal! {}v:call cursor({}, {})\\<CR>"'.format(
+                    operator, output.cursor[0], output.cursor[1] + 1))
+            if operator == 'c':
+                # Running `c` in `normal!` as above will shift the cursor one
+                # more character to the left; so we need to shift back one
+                # character.
+                if output.cursor[1] > 0:
+                    vim.command('normal! l')
+                vim.command('startinsert')
+            # This patch breaks `.` (see https://vimhelp.org/repeat.txt.html#.).
+            # Need help on fixing this issue.
+            elif operator == 'd' and output.d_special:
+                vim.command('normal! dd')
+
+    return {fun_name: _motion_wrapper}
+
+
 def _define_functions():
-    for mo in ['w', 'W', 'e', 'E', 'b', 'B']:
+    for mo in ['w', 'W', 'e', 'E', 'b', 'B', 'ge', 'gE']:
         globals().update(_vim_wrapper_factory_n(mo))
         globals().update(_vim_wrapper_factory_x(mo))
         if mo in ['e', 'E']:
             globals().update(_vim_wrapper_factory_omap_e(mo))
         elif mo in ['b', 'B']:
             globals().update(_vim_wrapper_factory_omap_b(mo))
+        elif mo in ['ge', 'gE']:
+            globals().update(_vim_wrapper_factory_omap_ge(mo))
         else:
             globals().update(_vim_wrapper_factory_o(mo))
 
