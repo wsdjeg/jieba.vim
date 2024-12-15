@@ -16,7 +16,11 @@ Execute:
   let @b = ""
   let @x = ""
   call cursor({{ lnum_before }}, {{ col_before }})
+  {%- if prevent_change %}
+  call VeCursor({{ lnum_after }}, {{ col_after }})
+  {%- else %}
   execute 'normal! "x{{ operator }}{{ v }}:call VeCursor({{ lnum_after }}, {{ col_after }})' . "\<cr>"
+  {%- endif %}
   set virtualedit=
   let g:rust_lnum = line(".")
   let g:rust_col = col(".")

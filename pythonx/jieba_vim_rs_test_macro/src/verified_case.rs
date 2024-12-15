@@ -13,9 +13,9 @@
 // under the License.
 
 use jieba_vim_rs_test::verified_case::cases::{
-    NmapBCase, NmapECase, NmapWCase, OmapCBCase, OmapCECase, OmapCWCase,
-    OmapDBCase, OmapDECase, OmapDWCase, OmapYBCase, OmapYECase, OmapYWCase,
-    XmapBCase, XmapECase, XmapWCase,
+    NmapBCase, NmapECase, NmapGeCase, NmapWCase, OmapCBCase, OmapCECase,
+    OmapCWCase, OmapDBCase, OmapDECase, OmapDGeCase, OmapDWCase, OmapYBCase,
+    OmapYECase, OmapYWCase, XmapBCase, XmapECase, XmapGeCase, XmapWCase,
 };
 use jieba_vim_rs_test::verified_case::{
     verify_cases, Count, Mode, Motion, Operator,
@@ -458,21 +458,71 @@ impl VerifiedCases {
                 }))
             }
             (Mode::Operator, Operator::Delete, Motion::B(word)) => {
-                def_common_match_arm!(
-                    OmapDBCase,
-                    write_omap_d_b_assertion,
-                    word
-                )
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapDBCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_d_b_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
             }
             (Mode::Operator, Operator::Yank, Motion::B(word)) => {
-                def_common_match_arm!(
-                    OmapYBCase,
-                    write_omap_y_b_assertion,
-                    word
-                )
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapYBCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_y_b_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
             }
             (Mode::Visual(kind), Operator::NoOp, Motion::B(word)) => {
                 def_common_match_arm!(xmap; XmapBCase, write_xmap_b_assertion, kind, word)
+            }
+            (Mode::Normal, Operator::NoOp, Motion::Ge(word)) => {
+                def_common_match_arm!(NmapGeCase, write_nmap_ge_assertion, word)
+            }
+            (Mode::Visual(kind), Operator::NoOp, Motion::Ge(word)) => {
+                def_common_match_arm!(xmap; XmapGeCase, write_xmap_ge_assertion, kind, word)
+            }
+            (Mode::Operator, Operator::Delete, Motion::Ge(word)) => {
+                let cases = clone_cases_as(&self.cases, |c| {
+                    OmapDGeCase::new(
+                        c.buffer.clone(),
+                        c.count,
+                        *word,
+                        c.d_special,
+                        c.prevent_change,
+                    )
+                    .unwrap()
+                });
+                if !skip_verify {
+                    verify_cases(&self.group_name, &cases)?;
+                }
+                Ok(self.write_all_tests(&cases, |case_name, case_id, case| {
+                    self.write_omap_d_ge_assertion(
+                        case_name, case_id, case, *word,
+                    )
+                }))
             }
             _ => Err("Unsupported mode/operator/motion combination".into()),
         }
@@ -503,7 +553,7 @@ impl VerifiedCases {
     }
 }
 
-macro_rules! def_cursor_only_assertion {
+macro_rules! def_assertion {
     ( $fun_name:ident, $typ:ty, $fun_name_to_test:ident ) => {
         impl VerifiedCases {
             fn $fun_name(
@@ -513,6 +563,8 @@ macro_rules! def_cursor_only_assertion {
                 case: $typ,
                 word: bool,
             ) -> TokenStream {
+                use jieba_vim_rs_test::verified_case::cases::MotionOutput as TestMotionOutput;
+
                 let test_name: Ident =
                     syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
                 let backend_path = &self.backend_path;
@@ -520,23 +572,34 @@ macro_rules! def_cursor_only_assertion {
                 let timeout = self.timeout;
 
                 let lnum_before = case.lnum_before;
-                let lnum_after = case.lnum_after;
                 let col_before = case.col_before;
-                let col_after = case.col_after;
                 let buffer = &case.buffer;
                 let count = case.count.explicit();
                 let case_desc = case.to_string();
+
+                // We can't pass `true_output` directly to quote! because
+                // `TestMotionOutput` does not implement `ToToken` trait.
+                let true_output: TestMotionOutput = case.clone().into();
+                let (true_lnum_after, true_col_after) = true_output.new_cursor_pos;
+                let true_d_special = true_output.d_special;
+                let true_prevent_change = true_output.prevent_change;
 
                 quote! {
                     #[test]
                     fn #test_name() {
                         use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
+                        use jieba_vim_rs_test::verified_case::cases::MotionOutput as TestMotionOutput;
 
                         let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
                         let timing = AssertElapsed::tic(#timeout);
-                        let (lnum_after_pred, col_after_pred) = #backend_path.$fun_name_to_test(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
+                        let pred_output = #backend_path.$fun_name_to_test(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
                         timing.toc();
-                        assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
+                        let true_output = TestMotionOutput {
+                            new_cursor_pos: (#true_lnum_after, #true_col_after),
+                            d_special: #true_d_special,
+                            prevent_change: #true_prevent_change,
+                        };
+                        assert_eq!(pred_output, true_output, "\n{}", #case_desc);
                     }
                 }
             }
@@ -544,57 +607,21 @@ macro_rules! def_cursor_only_assertion {
     };
 }
 
-def_cursor_only_assertion!(write_nmap_w_assertion, &NmapWCase, nmap_w);
-def_cursor_only_assertion!(write_nmap_e_assertion, &NmapECase, nmap_e);
-def_cursor_only_assertion!(write_omap_c_w_assertion, &OmapCWCase, omap_c_w);
-def_cursor_only_assertion!(write_omap_d_w_assertion, &OmapDWCase, omap_w);
-def_cursor_only_assertion!(write_omap_y_w_assertion, &OmapYWCase, omap_w);
-def_cursor_only_assertion!(write_omap_c_e_assertion, &OmapCECase, omap_e);
-def_cursor_only_assertion!(write_omap_y_e_assertion, &OmapYECase, omap_e);
-def_cursor_only_assertion!(write_xmap_w_assertion, &XmapWCase, xmap_w);
-def_cursor_only_assertion!(write_xmap_e_assertion, &XmapECase, xmap_e);
-def_cursor_only_assertion!(write_nmap_b_assertion, &NmapBCase, nmap_b);
-def_cursor_only_assertion!(write_omap_c_b_assertion, &OmapCBCase, omap_b);
-def_cursor_only_assertion!(write_omap_d_b_assertion, &OmapDBCase, omap_b);
-def_cursor_only_assertion!(write_omap_y_b_assertion, &OmapYBCase, omap_b);
-def_cursor_only_assertion!(write_xmap_b_assertion, &XmapBCase, xmap_b);
-
-impl VerifiedCases {
-    fn write_omap_d_e_assertion(
-        &self,
-        case_name: &str,
-        case_id: usize,
-        case: &OmapDECase,
-        word: bool,
-    ) -> TokenStream {
-        let test_name: Ident =
-            syn::parse_str(&format!("{}_{}", case_name, case_id)).unwrap();
-        let backend_path = &self.backend_path;
-        let buffer_type = &self.buffer_type;
-        let timeout = self.timeout;
-
-        let lnum_before = case.lnum_before;
-        let lnum_after = case.lnum_after;
-        let col_before = case.col_before;
-        let col_after = case.col_after;
-        let buffer = &case.buffer;
-        let count = case.count.explicit();
-        let d_special = case.d_special;
-        let case_desc = case.to_string();
-
-        quote! {
-            #[test]
-            fn #test_name() {
-                use jieba_vim_rs_test::assert_elapsed::AssertElapsed;
-
-                let buffer: #buffer_type = vec![#(#buffer.to_string()),*].into();
-                let timing = AssertElapsed::tic(#timeout);
-                let ((lnum_after_pred, col_after_pred), d_special_pred) =
-                    #backend_path.omap_d_e(&buffer, (#lnum_before, #col_before), #count, #word).unwrap();
-                timing.toc();
-                assert_eq!(d_special_pred, #d_special, "\n{}", #case_desc);
-                assert_eq!((lnum_after_pred, col_after_pred), (#lnum_after, #col_after), "\n{}", #case_desc);
-            }
-        }
-    }
-}
+def_assertion!(write_nmap_w_assertion, &NmapWCase, nmap_w);
+def_assertion!(write_nmap_e_assertion, &NmapECase, nmap_e);
+def_assertion!(write_omap_c_w_assertion, &OmapCWCase, omap_c_w);
+def_assertion!(write_omap_d_w_assertion, &OmapDWCase, omap_w);
+def_assertion!(write_omap_y_w_assertion, &OmapYWCase, omap_w);
+def_assertion!(write_omap_c_e_assertion, &OmapCECase, omap_e);
+def_assertion!(write_omap_y_e_assertion, &OmapYECase, omap_e);
+def_assertion!(write_xmap_w_assertion, &XmapWCase, xmap_w);
+def_assertion!(write_xmap_e_assertion, &XmapECase, xmap_e);
+def_assertion!(write_nmap_b_assertion, &NmapBCase, nmap_b);
+def_assertion!(write_omap_c_b_assertion, &OmapCBCase, omap_b);
+def_assertion!(write_omap_d_b_assertion, &OmapDBCase, omap_b);
+def_assertion!(write_omap_y_b_assertion, &OmapYBCase, omap_b);
+def_assertion!(write_xmap_b_assertion, &XmapBCase, xmap_b);
+def_assertion!(write_nmap_ge_assertion, &NmapGeCase, nmap_ge);
+def_assertion!(write_xmap_ge_assertion, &XmapGeCase, xmap_ge);
+def_assertion!(write_omap_d_e_assertion, &OmapDECase, omap_d_e);
+def_assertion!(write_omap_d_ge_assertion, &OmapDGeCase, omap_d_ge);

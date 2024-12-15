@@ -1,17 +1,3 @@
-// Copyright 2024 Kaiwen Wu. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License"); you may not
-// use this file except in compliance with the License. You may obtain a copy
-// of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-// License for the specific language governing permissions and limitations
-// under the License.
-
 use super::super::Count;
 use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
 use crate::cursor_marker::{self, CursorMarker};
@@ -22,7 +8,7 @@ use std::io::BufWriter;
 use std::path::Path;
 
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
-pub struct OmapCWCase {
+pub struct NmapGeCase {
     pub lnum_before: usize,
     pub col_before: usize,
     pub lnum_after: usize,
@@ -32,7 +18,7 @@ pub struct OmapCWCase {
     pub word: bool,
 }
 
-impl OmapCWCase {
+impl NmapGeCase {
     /// Create a new case. `count` equals 0 means 1 but without explicit count.
     pub fn new<C: Into<Count>>(
         marked_buffer: Vec<String>,
@@ -53,14 +39,14 @@ impl OmapCWCase {
 
     fn motion_str(&self) -> &'static str {
         if self.word {
-            "w"
+            "ge"
         } else {
-            "W"
+            "gE"
         }
     }
 }
 
-impl VerifiableCase for OmapCWCase {
+impl VerifiableCase for NmapGeCase {
     fn to_vader(&self, path: &Path) {
         let mut writer = BufWriter::new(File::create(path).unwrap());
         let buffer = &self.buffer;
@@ -73,7 +59,7 @@ impl VerifiableCase for OmapCWCase {
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
-            .get_template("setup_omap")
+            .get_template("setup")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
@@ -84,25 +70,23 @@ impl VerifiableCase for OmapCWCase {
             col_after,
             count,
             motion,
-            o_v => false,
-            prevent_change => false,
         );
         TEMPLATES
-            .get_template("execute_omap_c")
+            .get_template("execute_nmap")
             .unwrap()
             .render_to_write(ctx, &mut writer)
             .unwrap();
     }
 }
 
-impl fmt::Display for OmapCWCase {
+impl fmt::Display for NmapGeCase {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut out = String::new();
         out.push_str("\nBuffer:\n");
         out.push_str(&utils::display_buffer(&self.buffer));
         out.push_str("\nExpected motion: ");
         out.push_str(&format!(
-            "({}, {}) -c{}{}-> ({}, {})\n",
+            "({}, {}) -{}{}-> ({}, {})\n",
             self.lnum_before,
             self.col_before,
             self.count.to_string(),
@@ -114,7 +98,7 @@ impl fmt::Display for OmapCWCase {
     }
 }
 
-impl Into<MotionOutput> for OmapCWCase {
+impl Into<MotionOutput> for NmapGeCase {
     fn into(self) -> MotionOutput {
         MotionOutput {
             new_cursor_pos: (self.lnum_after, self.col_after),

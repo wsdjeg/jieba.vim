@@ -12,8 +12,8 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-use super::{index_tokens, BufferLike, WordMotion};
-use crate::token::{self, JiebaPlaceholder, TokenLike, TokenType};
+use super::{d_special, BufferLike, MotionOutput, WordMotion};
+use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
     /// Vim motion `e` (if `word` is `true`) or `E` (if `word` is `false`) in
@@ -24,10 +24,10 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
     ///
     /// But since `e`/`E` is itself inclusive, and `o_v`
     /// (https://vimhelp.org/motion.txt.html#o_v) can be used to invert
-    /// exclusiveness to inclusiveness, we may use prefix the colon command
-    /// with it and reuse most code from `nmap e`. Note also the special case
-    /// `d-special` (https://vimhelp.org/change.txt.html#d-special). Therefore,
-    /// we need to apply `o_v` in a case-by-case manner.
+    /// exclusiveness to inclusiveness, we may prefix the colon command with
+    /// it and reuse most code from `nmap e`. Note also the special case
+    /// `d-special` (https://vimhelp.org/change.txt.html#d-special), where we
+    /// have to postprocess the buffer.
     ///
     /// Take in current `cursor_pos` (lnum, col), and return the new cursor
     /// position. Also return a bool indicating if `d-special` takes effect.
@@ -57,55 +57,19 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         cursor_pos: (usize, usize),
         count: u64,
         word: bool,
-    ) -> Result<((usize, usize), bool), B::Error> {
-        let new_cursor_pos = self.nmap_e(buffer, cursor_pos, count, word)?;
-        let (lnum, col) = cursor_pos;
-        let (new_lnum, new_col) = new_cursor_pos;
-
-        if lnum == new_lnum {
-            return Ok((new_cursor_pos, false));
-        }
-
-        let tokens_cursor_line =
-            token::parse_str(buffer.getline(lnum)?, &self.jieba, word);
-        if !tokens_cursor_line.is_empty() {
-            let i = index_tokens(&tokens_cursor_line, col).unwrap();
-            if tokens_cursor_line[..i].iter().any(|tok| match tok.ty {
-                TokenType::Space => false,
-                TokenType::Word => true,
-            }) {
-                return Ok((new_cursor_pos, false));
-            }
-            let cursor_token = &tokens_cursor_line[i];
-            if let TokenType::Word = cursor_token.ty {
-                if col > cursor_token.first_char() {
-                    return Ok((new_cursor_pos, false));
-                }
-            }
-        }
-
-        let tokens_new_cursor_line =
-            token::parse_str(buffer.getline(new_lnum)?, &self.jieba, word);
-        if !tokens_new_cursor_line.is_empty() {
-            let j = index_tokens(&tokens_new_cursor_line, new_col).unwrap();
-            if tokens_new_cursor_line[j + 1..]
-                .iter()
-                .any(|tok| match tok.ty {
-                    TokenType::Space => false,
-                    TokenType::Word => true,
-                })
-            {
-                return Ok((new_cursor_pos, false));
-            }
-            let new_cursor_token = &tokens_new_cursor_line[j];
-            if let TokenType::Word = new_cursor_token.ty {
-                if new_col < new_cursor_token.last_char() {
-                    return Ok((new_cursor_pos, false));
-                }
-            }
-        }
-
-        Ok((new_cursor_pos, true))
+    ) -> Result<MotionOutput, B::Error> {
+        let mo = self.nmap_e(buffer, cursor_pos, count, word)?;
+        Ok(MotionOutput {
+            new_cursor_pos: mo.new_cursor_pos,
+            d_special: d_special::is_d_special(
+                buffer,
+                &self.jieba,
+                cursor_pos,
+                mo.new_cursor_pos,
+                word,
+            )?,
+            prevent_change: false,
+        })
     }
 }
 

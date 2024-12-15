@@ -14,7 +14,7 @@ Execute:
   let @b = ""
   call cursor({{ lnum_before }}, {{ col_before }})
   {%- if prevent_change %}
-  execute "normal! {{ operator }}{{ v }}:call VeCursor({{ lnum_after }}, {{ col_after }})\<cr>"
+  call VeCursor({{ lnum_after }}, {{ col_after }})
   {%- else %}
   execute "normal! {{ operator }}{{ v }}:call VeCursor({{ lnum_after }}, {{ col_after }})\<cr>XXX"
   {%- endif %}

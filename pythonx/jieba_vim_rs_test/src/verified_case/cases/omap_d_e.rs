@@ -13,7 +13,7 @@
 // under the License.
 
 use super::super::Count;
-use super::{utils, VerifiableCase, TEMPLATES};
+use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
 use crate::cursor_marker::{self, CursorMarker};
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -21,7 +21,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
-#[derive(PartialEq, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct OmapDECase {
     pub lnum_before: usize,
     pub col_before: usize,
@@ -90,6 +90,7 @@ impl VerifiableCase for OmapDECase {
             motion,
             o_v => true,
             d_special,
+            prevent_change => false,
         );
         TEMPLATES
             .get_template("execute_omap_d")
@@ -120,5 +121,15 @@ impl fmt::Display for OmapDECase {
             out.push_str("\nd-special off\n");
         }
         write!(f, "{}", out)
+    }
+}
+
+impl Into<MotionOutput> for OmapDECase {
+    fn into(self) -> MotionOutput {
+        MotionOutput {
+            new_cursor_pos: (self.lnum_after, self.col_after),
+            d_special: self.d_special,
+            prevent_change: false,
+        }
     }
 }

@@ -12,8 +12,20 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-use super::{BufferLike, WordMotion};
-use crate::token::JiebaPlaceholder;
+use super::token_iter::{BackwardTokenIterator, TokenIteratorItem};
+use super::{BufferLike, MotionOutput, WordMotion};
+use crate::token::{JiebaPlaceholder, TokenLike, TokenType};
+
+/// Test if a token is stoppable for `omap_b`.
+fn is_stoppable(item: &TokenIteratorItem) -> bool {
+    match item.token {
+        None => true,
+        Some(token) => match token.ty {
+            TokenType::Word => true,
+            TokenType::Space => false,
+        },
+    }
+}
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
     /// Vim motion `b` (if `word` is `true`) or `B` (if `word` is `false`)
@@ -45,10 +57,35 @@ impl<C: JiebaPlaceholder> WordMotion<C> {
         &self,
         buffer: &B,
         cursor_pos: (usize, usize),
-        count: u64,
+        mut count: u64,
         word: bool,
-    ) -> Result<(usize, usize), B::Error> {
-        self.nmap_b(buffer, cursor_pos, count, word)
+    ) -> Result<MotionOutput, B::Error> {
+        let (mut lnum, mut col) = cursor_pos;
+        let mut prevent_change = lnum == 1 && col == 0 && count > 0;
+        let mut it =
+            BackwardTokenIterator::new(buffer, &self.jieba, lnum, col, word)?
+                .peekable();
+        while count > 0 && it.peek().is_some() {
+            let item = it.next().unwrap()?;
+            if !is_stoppable(&item) {
+                lnum = item.lnum;
+                col = item.token.first_char();
+            } else if !(item.cursor && col == item.token.first_char()) {
+                lnum = item.lnum;
+                col = item.token.first_char();
+                count -= 1;
+                if let None = item.token {
+                    if count > 0 && it.peek().is_none() {
+                        prevent_change = true;
+                    }
+                }
+            }
+        }
+        Ok(MotionOutput {
+            new_cursor_pos: (lnum, col),
+            d_special: false,
+            prevent_change,
+        })
     }
 }
 
@@ -67,8 +104,8 @@ mod tests {
         timeout = 50,
         backend_path = "crate::motion::WORD_MOTION"
     )]
-    #[vcase(name = "empty", buffer = ["}{"])]
-    #[vcase(name = "space", buffer = ["}{ "])]
+    #[vcase(name = "empty", buffer = ["}{"], prevent_change)]
+    #[vcase(name = "space", buffer = ["}{ "], prevent_change)]
     #[vcase(name = "space", buffer = ["}   { "])]
     #[vcase(name = "newline_newline", buffer = ["}", "{"])]
     #[vcase(name = "newline_space_newline", buffer = ["}  ", "{"])]
@@ -76,7 +113,7 @@ mod tests {
     #[vcase(name = "newline_space_newline", buffer = ["}  ", "  ", "{"])]
     #[vcase(name = "newline_space_newline", buffer = ["}  ", "   {  "])]
     #[vcase(name = "newline_space_newline", buffer = ["  ", "}", "   {  "])]
-    #[vcase(name = "one_word", buffer = ["}{aaaa"])]
+    #[vcase(name = "one_word", buffer = ["}{aaaa"], prevent_change)]
     #[vcase(name = "one_word", buffer = ["}aa{aa"])]
     #[vcase(name = "one_word", buffer = ["}aaa{a"])]
     #[vcase(name = "one_word", buffer = ["}aaa{a"], count = 2)]
@@ -95,6 +132,7 @@ mod tests {
     #[vcase(name = "one_word_newline", buffer = ["}aaaa", "{"])]
     #[vcase(name = "newline_one_word", buffer = ["", "}aaa{a"])]
     #[vcase(name = "newline_one_word", buffer = ["}", "aaa{a"], count = 2)]
+    #[vcase(name = "newline_one_word", buffer = ["}", "aaa{a"], count = 3, prevent_change)]
     #[vcase(name = "one_word_space_newline", buffer = ["}aaaa    ", "{"])]
     #[vcase(name = "two_words_space_newline", buffer = ["aaaa }aaa    ", "  ", "{"])]
     #[vcase(name = "two_words_space_newline", buffer = ["aaaa }aaa    ", "  ", "  { "])]
@@ -112,7 +150,7 @@ mod tests {
     #[vcase(name = "newline_space_newline_one_word", buffer = ["", "  ", "}", "aa{a"], count = 2)]
     #[vcase(name = "newline_space_newline_one_word", buffer = ["}", "  ", "", "aa{a"], count = 3)]
     #[vcase(name = "two_words_newline_one_word", buffer = ["aaaa }aaa", "", "  ", "{aaa"], count = 2)]
-    #[vcase(name = "large_unnecessary_count", buffer = ["}{"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["}{"], count = 10293949403, prevent_change)]
     #[vcase(name = "large_unnecessary_count", buffer = ["}aaa  aaa{aa"], count = 10293949403)]
     mod motion_omap_d_b {}
 
@@ -152,6 +190,7 @@ mod tests {
     #[vcase(name = "one_word_newline", buffer = ["}aaaa", "{"])]
     #[vcase(name = "newline_one_word", buffer = ["", "}aaa{a"])]
     #[vcase(name = "newline_one_word", buffer = ["}", "aaa{a"], count = 2)]
+    #[vcase(name = "newline_one_word", buffer = ["}", "aaa{a"], count = 3, prevent_change)]
     #[vcase(name = "one_word_space_newline", buffer = ["}aaaa    ", "{"])]
     #[vcase(name = "two_words_space_newline", buffer = ["aaaa }aaa    ", "  ", "{"])]
     #[vcase(name = "two_words_space_newline", buffer = ["aaaa }aaa    ", "  ", "  { "])]
@@ -181,8 +220,8 @@ mod tests {
         timeout = 50,
         backend_path = "crate::motion::WORD_MOTION"
     )]
-    #[vcase(name = "empty", buffer = ["}{"])]
-    #[vcase(name = "space", buffer = ["}{ "])]
+    #[vcase(name = "empty", buffer = ["}{"], prevent_change)]
+    #[vcase(name = "space", buffer = ["}{ "], prevent_change)]
     #[vcase(name = "space", buffer = ["}   { "])]
     #[vcase(name = "newline_newline", buffer = ["}", "{"])]
     #[vcase(name = "newline_space_newline", buffer = ["}  ", "{"])]
@@ -190,7 +229,7 @@ mod tests {
     #[vcase(name = "newline_space_newline", buffer = ["}  ", "  ", "{"])]
     #[vcase(name = "newline_space_newline", buffer = ["}  ", "   {  "])]
     #[vcase(name = "newline_space_newline", buffer = ["  ", "}", "   {  "])]
-    #[vcase(name = "one_word", buffer = ["}{aaaa"])]
+    #[vcase(name = "one_word", buffer = ["}{aaaa"], prevent_change)]
     #[vcase(name = "one_word", buffer = ["}aa{aa"])]
     #[vcase(name = "one_word", buffer = ["}aaa{a"])]
     #[vcase(name = "one_word", buffer = ["}aaa{a"], count = 2)]
@@ -209,6 +248,7 @@ mod tests {
     #[vcase(name = "one_word_newline", buffer = ["}aaaa", "{"])]
     #[vcase(name = "newline_one_word", buffer = ["", "}aaa{a"])]
     #[vcase(name = "newline_one_word", buffer = ["}", "aaa{a"], count = 2)]
+    #[vcase(name = "newline_one_word", buffer = ["}", "aaa{a"], count = 3, prevent_change)]
     #[vcase(name = "one_word_space_newline", buffer = ["}aaaa    ", "{"])]
     #[vcase(name = "two_words_space_newline", buffer = ["aaaa }aaa    ", "  ", "{"])]
     #[vcase(name = "two_words_space_newline", buffer = ["aaaa }aaa    ", "  ", "  { "])]
@@ -226,7 +266,7 @@ mod tests {
     #[vcase(name = "newline_space_newline_one_word", buffer = ["", "  ", "}", "aa{a"], count = 2)]
     #[vcase(name = "newline_space_newline_one_word", buffer = ["}", "  ", "", "aa{a"], count = 3)]
     #[vcase(name = "two_words_newline_one_word", buffer = ["aaaa }aaa", "", "  ", "{aaa"], count = 2)]
-    #[vcase(name = "large_unnecessary_count", buffer = ["}{"], count = 10293949403)]
+    #[vcase(name = "large_unnecessary_count", buffer = ["}{"], count = 10293949403, prevent_change)]
     #[vcase(name = "large_unnecessary_count", buffer = ["}aaa  aaa{aa"], count = 10293949403)]
     mod motion_omap_y_b {}
 }
