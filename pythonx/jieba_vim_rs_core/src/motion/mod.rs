@@ -13,6 +13,7 @@ mod omap_c_w;
 mod omap_d_e;
 mod omap_d_ge;
 mod omap_e;
+mod omap_ge;
 mod omap_w;
 mod token_iter;
 mod xmap_b;
