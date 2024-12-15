@@ -12,14 +12,15 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
+use std::cell::RefCell;
+use std::fs::File;
+use std::io::BufReader;
+
 use jieba_rs::Jieba;
 use jieba_vim_rs_core::motion::{BufferLike, MotionOutput, WordMotion};
 use jieba_vim_rs_core::token::JiebaPlaceholder;
 use pyo3::exceptions::{PyIOError, PyValueError};
 use pyo3::prelude::*;
-use std::cell::RefCell;
-use std::fs::File;
-use std::io::BufReader;
 
 use crate::preview;
 
