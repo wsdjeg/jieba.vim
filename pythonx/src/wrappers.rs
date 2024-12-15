@@ -423,6 +423,113 @@ impl WordMotionWrapper {
         )?))
     }
 
+    pub fn nmap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.nmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            true,
+        )?))
+    }
+
+    #[allow(non_snake_case)]
+    pub fn nmap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.nmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            false,
+        )?))
+    }
+
+    pub fn xmap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.xmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            true,
+        )?))
+    }
+
+    #[allow(non_snake_case)]
+    pub fn xmap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.xmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            false,
+        )?))
+    }
+
+    pub fn omap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        if operator == "d" {
+            Ok(MotionOutputWrapper(self.wm.omap_d_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                true,
+            )?))
+        } else {
+            Ok(MotionOutputWrapper(self.wm.omap_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                true,
+            )?))
+        }
+    }
+
+    #[allow(non_snake_case)]
+    pub fn omap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        if operator == "d" {
+            Ok(MotionOutputWrapper(self.wm.omap_d_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                false,
+            )?))
+        } else {
+            Ok(MotionOutputWrapper(self.wm.omap_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                false,
+            )?))
+        }
+    }
+
     pub fn preview_nmap_w(
         &self,
         buffer: &Bound<'_, PyAny>,
@@ -504,6 +611,35 @@ impl WordMotionWrapper {
     ) -> PyResult<Vec<(usize, usize)>> {
         preview::preview(
             |b, c| Ok(self.wm.nmap_b(b, c, 1, false)?.new_cursor_pos),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    pub fn preview_nmap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| Ok(self.wm.nmap_ge(b, c, 1, true)?.new_cursor_pos),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    #[allow(non_snake_case)]
+    pub fn preview_nmap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| Ok(self.wm.nmap_ge(b, c, 1, false)?.new_cursor_pos),
             &BoundWrapper(buffer),
             cursor_pos,
             preview_limit,
@@ -835,6 +971,113 @@ impl LazyWordMotionWrapper {
         )?))
     }
 
+    pub fn nmap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.nmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            true,
+        )?))
+    }
+
+    #[allow(non_snake_case)]
+    pub fn nmap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.nmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            false,
+        )?))
+    }
+
+    pub fn xmap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.xmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            true,
+        )?))
+    }
+
+    #[allow(non_snake_case)]
+    pub fn xmap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        Ok(MotionOutputWrapper(self.wm.xmap_ge(
+            &BoundWrapper(buffer),
+            cursor_pos,
+            count,
+            false,
+        )?))
+    }
+
+    pub fn omap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        if operator == "d" {
+            Ok(MotionOutputWrapper(self.wm.omap_d_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                true,
+            )?))
+        } else {
+            Ok(MotionOutputWrapper(self.wm.omap_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                true,
+            )?))
+        }
+    }
+
+    #[allow(non_snake_case)]
+    pub fn omap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        operator: &str,
+        count: u64,
+    ) -> PyResult<MotionOutputWrapper> {
+        if operator == "d" {
+            Ok(MotionOutputWrapper(self.wm.omap_d_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                false,
+            )?))
+        } else {
+            Ok(MotionOutputWrapper(self.wm.omap_ge(
+                &BoundWrapper(buffer),
+                cursor_pos,
+                count,
+                false,
+            )?))
+        }
+    }
+
     pub fn preview_nmap_w(
         &self,
         buffer: &Bound<'_, PyAny>,
@@ -916,6 +1159,35 @@ impl LazyWordMotionWrapper {
     ) -> PyResult<Vec<(usize, usize)>> {
         preview::preview(
             |b, c| Ok(self.wm.nmap_b(b, c, 1, false)?.new_cursor_pos),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    pub fn preview_nmap_ge(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| Ok(self.wm.nmap_ge(b, c, 1, true)?.new_cursor_pos),
+            &BoundWrapper(buffer),
+            cursor_pos,
+            preview_limit,
+        )
+    }
+
+    #[allow(non_snake_case)]
+    pub fn preview_nmap_gE(
+        &self,
+        buffer: &Bound<'_, PyAny>,
+        cursor_pos: (usize, usize),
+        preview_limit: usize,
+    ) -> PyResult<Vec<(usize, usize)>> {
+        preview::preview(
+            |b, c| Ok(self.wm.nmap_ge(b, c, 1, false)?.new_cursor_pos),
             &BoundWrapper(buffer),
             cursor_pos,
             preview_limit,
