@@ -10,10 +10,10 @@
     - [x] xmap e/E
     - [x] omap d e/E (omap e/E 的特殊情况)
     - [x] omap e/E
-    - [ ] nmap ge/gE
-    - [ ] xmap ge/gE
-    - [ ] omap d ge/gE (omap ge/gE 的特殊情况)
-    - [ ] omap ge/gE
+    - [x] nmap ge/gE
+    - [x] xmap ge/gE
+    - [x] omap d ge/gE (omap ge/gE 的特殊情况)
+    - [x] omap ge/gE
 - [ ] 测试并实现 word text object。要求在 ASCII 文档中与 Vim 原生 word text object 完全兼容，否则视为 bug。
     - [ ] xmap i w/W
     - [ ] omap i w/W
