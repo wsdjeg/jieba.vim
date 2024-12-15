@@ -13,8 +13,6 @@
 // under the License.
 
 use super::{BufferLike, MotionOutput, WordMotion};
-use super::{BufferLike, WordMotion};
-
 use crate::token::JiebaPlaceholder;
 
 impl<C: JiebaPlaceholder> WordMotion<C> {
