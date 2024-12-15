@@ -12,14 +12,16 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-use super::super::Count;
-use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
-use crate::cursor_marker::{self, CursorMarker};
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
+
+use serde::{Deserialize, Serialize};
+
+use super::super::Count;
+use super::{utils, MotionOutput, VerifiableCase, TEMPLATES};
+use crate::cursor_marker::{self, CursorMarker};
 
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct NmapWCase {

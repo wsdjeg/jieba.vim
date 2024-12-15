@@ -12,8 +12,9 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-use serde::{Deserialize, Serialize};
 use std::fmt;
+
+use serde::{Deserialize, Serialize};
 
 /// `{` represents the cursor before a motion. `}` represents the cursor after
 /// a motion.

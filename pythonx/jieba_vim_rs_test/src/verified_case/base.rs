@@ -12,9 +12,10 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::str::FromStr;
+
+use serde::{Deserialize, Serialize};
 
 /// Vim modes.
 pub enum Mode {
