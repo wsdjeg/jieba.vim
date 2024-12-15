@@ -1,4 +1,4 @@
-- [ ] 测试并实现 normal, visual, operator-pending 模式下的八种 word motions。要求在 ASCII 文档中与 Vim 原生 word motions 完全兼容，否则视为 bug。
+- [x] 测试并实现 normal, visual, operator-pending 模式下的八种 word motions。要求在 ASCII 文档中与 Vim 原生 word motions 完全兼容，否则视为 bug。
     - [x] nmap w/W
     - [x] xmap w/W
     - [x] omap w/W
