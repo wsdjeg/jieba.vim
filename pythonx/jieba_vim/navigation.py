@@ -169,6 +169,7 @@ def _vim_wrapper_factory_omap_e(motion_name):
         vim.command('set virtualedit=onemore')
         output = method(vim.current.buffer, vim.current.window.cursor,
                         operator, count)
+        col_before = vim.current.window.cursor[1]
         vim.current.window.cursor = output.cursor
         vim.command(
             'augroup jieba_vim_reset_virtualedit '
@@ -180,11 +181,20 @@ def _vim_wrapper_factory_omap_e(motion_name):
         # This patch breaks `.` (see https://vimhelp.org/repeat.txt.html#.).
         # Need help on fixing this issue.
         if operator == 'd' and output.d_special:
-            vim.command('augroup jieba_vim_teardown_d_special '
-                        '| autocmd! '
-                        '| autocmd TextChanged <buffer> execute "normal! dd" '
-                        '| autocmd! jieba_vim_teardown_d_special '
-                        '| augroup END')
+            if int(vim.eval('has("nvim")')):
+                vim.command(
+                    'augroup jieba_vim_teardown_d_special '
+                    '| autocmd! '
+                    '| autocmd TextChanged <buffer> execute "normal! dd" | execute "silent call cursor(line(\'.\'), {})" '
+                    '| autocmd! jieba_vim_teardown_d_special '
+                    '| augroup END'.format(col_before + 1))
+            else:
+                vim.command(
+                    'augroup jieba_vim_teardown_d_special '
+                    '| autocmd! '
+                    '| autocmd TextChanged <buffer> execute "normal! dd" '
+                    '| autocmd! jieba_vim_teardown_d_special '
+                    '| augroup END')
 
     return {fun_name: _motion_wrapper}
 
@@ -224,6 +234,7 @@ def _vim_wrapper_factory_omap_ge(motion_name):
         method = getattr(word_motion, fun_name)
         output = method(vim.current.buffer, vim.current.window.cursor,
                         operator, count)
+        col_before = vim.current.window.cursor[1]
         if output.prevent_change:
             vim.current.window.cursor = output.cursor
         else:
@@ -243,6 +254,10 @@ def _vim_wrapper_factory_omap_ge(motion_name):
             # Need help on fixing this issue.
             elif operator == 'd' and output.d_special:
                 vim.command('normal! dd')
+                if int(vim.eval('has("nvim")')):
+                    vim.command(
+                        '''execute "silent call cursor(line('.'), {})"'''
+                        .format(col_before + 1))
 
     return {fun_name: _motion_wrapper}
 
