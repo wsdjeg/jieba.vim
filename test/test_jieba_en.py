@@ -226,7 +226,7 @@ def write_vader_execute_then_block(
 
 
 def write_vader_test(
-    paragraph: str,
+    paragraph: list[str],
     mode: str,
     setup_keys: list[str] | None,
     jieba_keys: list[str] | None,
