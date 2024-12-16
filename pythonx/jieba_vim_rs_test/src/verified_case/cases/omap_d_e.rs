@@ -1,3 +1,4 @@
+use std::env;
 use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
@@ -62,6 +63,9 @@ impl VerifiableCase for OmapDECase {
         let count = self.count.to_string();
         let motion = self.motion_str();
         let d_special = self.d_special;
+        let nvim = env::var("VIM_BIN_NAME")
+            .map(|s| s == "nvim")
+            .unwrap_or(false);
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
@@ -79,6 +83,7 @@ impl VerifiableCase for OmapDECase {
             o_v => true,
             d_special,
             prevent_change => false,
+            nvim,
         );
         TEMPLATES
             .get_template("execute_omap_d")

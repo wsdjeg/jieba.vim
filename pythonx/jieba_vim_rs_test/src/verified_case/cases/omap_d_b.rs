@@ -79,6 +79,7 @@ impl VerifiableCase for OmapDBCase {
             o_v => false,
             d_special => false,
             prevent_change,
+            nvim => false,
         );
         TEMPLATES
             .get_template("execute_omap_d")

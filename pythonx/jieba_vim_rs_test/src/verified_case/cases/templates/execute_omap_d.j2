@@ -21,6 +21,9 @@ Execute:
   set virtualedit=
   {%- if d_special and not prevent_change %}
   normal! dd
+  {%- if nvim %}
+  call cursor(line("."), {{ col_before }})
+  {%- endif %}
   {%- endif %}
   let g:rust_lnum = line(".")
   let g:rust_col = col(".")
