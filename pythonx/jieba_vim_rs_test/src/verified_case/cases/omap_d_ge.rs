@@ -12,6 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
+use std::env;
 use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
@@ -80,6 +81,9 @@ impl VerifiableCase for OmapDGeCase {
         let motion = self.motion_str();
         let d_special = self.d_special;
         let prevent_change = self.prevent_change;
+        let nvim = env::var("VIM_BIN_NAME")
+            .map(|s| s == "nvim")
+            .unwrap_or(false);
 
         let ctx = minijinja::context!(buffer);
         TEMPLATES
@@ -97,6 +101,7 @@ impl VerifiableCase for OmapDGeCase {
             o_v => true,
             d_special,
             prevent_change,
+            nvim,
         );
         TEMPLATES
             .get_template("execute_omap_d")
