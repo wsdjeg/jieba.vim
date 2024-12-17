@@ -104,7 +104,15 @@ def _vim_wrapper_factory_x(motion_name):
         # multiple instances of Vim open?
         vim.command('let g:jieba_vim_previous_virtualedit = &virtualedit')
         vim.command('set virtualedit=onemore')
-        output = method(vim.current.buffer, vim.current.window.cursor, count)
+        # Handle the case where cursor is one character after the last
+        # character of the buffer in visual mode.
+        line = vim.current.window.cursor[0]
+        col_gt = int(vim.eval('''col("'>")''')) - 1
+        if col_gt >= len(vim.current.buffer[line - 1].encode('utf-8')):
+            output = method(vim.current.buffer, (line, col_gt), count)
+        else:
+            output = method(vim.current.buffer, vim.current.window.cursor,
+                            count)
         vim.current.window.cursor = output.cursor
 
     def _teardown_wrapper():
