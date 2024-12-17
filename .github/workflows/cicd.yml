@@ -143,8 +143,8 @@ jobs:
       - name: Test and build
         shell: bash
         run: |
-          cd "$GITHUB_WORKSPACE/jieba_vim/pythonx/jieba_vim_rs_test" && cargo test --target=${{ matrix.job.target }}
-          cd "$GITHUB_WORKSPACE/jieba_vim/pythonx/jieba_vim_rs_core" && cargo test --target=${{ matrix.job.target }}
+          cd "$GITHUB_WORKSPACE/jieba_vim/pythonx/jieba_vim_rs_test" && $BUILD_CMD test --target=${{ matrix.job.target }}
+          cd "$GITHUB_WORKSPACE/jieba_vim/pythonx/jieba_vim_rs_core" && $BUILD_CMD test --target=${{ matrix.job.target }}
           cd "$GITHUB_WORKSPACE/jieba_vim/pythonx" && $BUILD_CMD build --locked --release --target=${{ matrix.job.target }}
 
       - name: Set cdylib name and path
