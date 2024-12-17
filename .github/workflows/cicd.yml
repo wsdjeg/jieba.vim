@@ -60,6 +60,12 @@ jobs:
         run: |
           mkdir "$GITHUB_WORKSPACE/vim_bundle"
           git clone https://github.com/junegunn/vader.vim.git "$GITHUB_WORKSPACE/vim_bundle"
+    
+      - name: Debug after installing vader.vim
+        env:
+          VIM_BUNDLE_PATH: "$GITHUB_WORKSPACE/vim_bundle"
+          VIM_BIN_NAME: ${{ matrix.vim.dist }}
+        uses: fawazahmed0/action-debug-vscode@main
 
       - name: Verify and run unit tests
         env:
