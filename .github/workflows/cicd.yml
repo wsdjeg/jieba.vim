@@ -147,10 +147,6 @@ jobs:
           cargo -V
           rustc -V
 
-      - name: Debug before test and build
-        if: ${{ matrix.job.target == 'aarch64-unknown-linux-gnu' || matrix.job.target == 'i686-pc-windows-msvc' }}
-        uses: fawazahmed0/action-debug-vscode@main
-
       - name: Test and build
         shell: bash
         run: |
