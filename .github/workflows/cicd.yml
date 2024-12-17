@@ -136,15 +136,16 @@ jobs:
           cargo -V
           rustc -V
 
+      - name: Debug before test and build
+        if: ${{ matrix.job.target == 'aarch64-unknown-linux-gnu' || matrix.job.target == 'i686-pc-windows-msvc' }}
+        uses: fawazahmed0/action-debug-vscode@main
+
       - name: Test and build
         shell: bash
         run: |
           cd "$GITHUB_WORKSPACE/jieba_vim/pythonx/jieba_vim_rs_test" && cargo test --target=${{ matrix.job.target }}
           cd "$GITHUB_WORKSPACE/jieba_vim/pythonx/jieba_vim_rs_core" && cargo test --target=${{ matrix.job.target }}
           cd "$GITHUB_WORKSPACE/jieba_vim/pythonx" && $BUILD_CMD build --locked --release --target=${{ matrix.job.target }}
-
-      - name: Debug after test and build
-        uses: fawazahmed0/action-debug-vscode@main
 
       - name: Set cdylib name and path
         id: cdylib
