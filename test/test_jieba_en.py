@@ -3,6 +3,7 @@ Property-based integration tests based on junegunn/vader.vim
 (https://github.com/junegunn/vader.vim).
 """
 
+import os
 import typing as ty
 import contextlib
 import uuid
@@ -225,7 +226,7 @@ def write_vader_execute_then_block(
 
 
 def write_vader_test(
-    paragraph: str,
+    paragraph: list[str],
     mode: str,
     setup_keys: list[str] | None,
     jieba_keys: list[str] | None,
@@ -243,12 +244,15 @@ def write_vader_test(
 
 
 def eval_with_vim(vader_test_file: Path, unlink_on_success: bool = True):
+    vim_bin = os.environ.get('VIM_BIN_NAME', 'vim')
+    assert vim_bin in ('vim', 'nvim')
     try:
-        subprocess.run(['vim', '-u', 'vimrc', f'+:Vader! {vader_test_file}'],
-                       check=True,
-                       stdout=subprocess.DEVNULL,
-                       stderr=subprocess.DEVNULL,
-                       timeout=10)
+        subprocess.run(
+            [vim_bin, '-u', 'vimrc', '-c', f'silent Vader! {vader_test_file}'],
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10)
         if unlink_on_success:
             vader_test_file.unlink()
     except subprocess.CalledProcessError:
@@ -264,6 +268,7 @@ def eval_with_vim(vader_test_file: Path, unlink_on_success: bool = True):
 @hypothesis.example((['a'], 'o', [], ['"xy', 'w'], None))
 @hypothesis.example(([',', ',', ','], 'n', [], ['w'], None))
 @hypothesis.example((['a', 'a'], 'n', [], ['b', 'w'], None))
+@hypothesis.example((['a', 'a'], 'xchar', ['v'], ['w', 'ge'], ['"xy']))
 def test_jieba_en(args):
     paragraph, mode, setup_keys, jieba_keys, teardown_keys = args
     vader_test_file = write_vader_test(paragraph, mode, setup_keys, jieba_keys,
