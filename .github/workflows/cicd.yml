@@ -42,7 +42,7 @@ jobs:
               git clone https://github.com/vim/vim.git && cd vim
               git checkout ${{ matrix.vim.version }}
               ./configure --prefix="$GITHUB_WORKSPACE/vim/prefix" && make -j4 && make install
-              echo "GITHUB_WORKSPACE/vim/prefix/bin" >> $GITHUB_PATH
+              echo "$GITHUB_WORKSPACE/vim/prefix/bin" >> $GITHUB_PATH
               ;;
             nvim)
               sudo apt-get update
