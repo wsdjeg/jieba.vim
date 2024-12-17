@@ -153,13 +153,13 @@ jobs:
           LIB_NAME: jieba_vim_rs
         run: |
           case ${{ matrix.job.target }} in
-            *-linux-*)      CDYLIB_SUFFIX=".so"    ;;
-            *-apple-darwin) CDYLIB_SUFFIX=".dylib" ;;
-            *-pc-windows-*) CDYLIB_SUFFIX=".dll"   ;;
+            *-linux-*)      CDYLIB_SUFFIX=".so"; CDYLIB_PREFIX="lib";    ;;
+            *-apple-darwin) CDYLIB_SUFFIX=".dylib"; CDYLIB_PREFIX="lib"; ;;
+            *-pc-windows-*) CDYLIB_SUFFIX=".dll"; CDYLIB_PREFIX="";      ;;
             *) false ;;
           esac
 
-          LIB_NAME=${LIB_NAME}${CDYLIB_SUFFIX}
+          LIB_NAME=${CDYLIB_PREFIX}${LIB_NAME}${CDYLIB_SUFFIX}
           LIB_PATH="$GTIHUB_WORKSPACE/jieba_vim/target/${{ matrix.job.target }}/release/${LIB_NAME}"
           test -f "$LIB_PATH"
 
