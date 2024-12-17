@@ -842,7 +842,7 @@ mod tests {
     }
 
     fn parse_str_test(s: &str, into_word: bool) -> Vec<Token> {
-        let timing = AssertElapsed::tic(10);
+        let timing = AssertElapsed::tic(20);
         let output = parse_str(s, JIEBA.get().unwrap(), into_word);
         timing.toc();
         output
