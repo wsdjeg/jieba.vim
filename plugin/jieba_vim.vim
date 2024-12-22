@@ -12,13 +12,30 @@
 " License for the specific language governing permissions and limitations
 " under the License.
 
+
+""
+" @section Introduction, intro
+" @stylized jieba
+" @library
+" @order intro config
+" jieba.vim 是一个基于 jieba 中文分词插件.
+
+
 if exists("g:loaded_jieba_vim")
     finish
 endif
 let g:loaded_jieba_vim = 1
-
+""
+"  (默认 1)：是/否 (1/0) 延迟加载 jieba 词典直到有中文出现。
 let g:jieba_vim_lazy = get(g:, 'jieba_vim_lazy', 1)
+
+""
+" (默认空)：若为非空字符串，加载此文件路径所指向的用户自定义词典。
 let g:jieba_vim_user_dict = get(g:, 'jieba_vim_user_dict', '')
+
+
+""
+" (默认 0)：是/否 (1/0) 自动开启 keymap。
 let g:jieba_vim_keymap = get(g:, 'jieba_vim_keymap', 0)
 
 if !has('python3')
